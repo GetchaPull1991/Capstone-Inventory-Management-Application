@@ -1,4 +1,4 @@
-package View;
+package Controller;
 
 import Model.User;
 import javafx.fxml.FXML;

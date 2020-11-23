@@ -1,4 +1,4 @@
-package View;
+package Controller;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,7 +17,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("LoginDialog.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("../View/LoginDialog.fxml"));
         primaryStage.setTitle("Capstone Inventory Management Login");
         Scene mainUI = new Scene(root, 400, 225);
 

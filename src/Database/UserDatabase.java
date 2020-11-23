@@ -1,7 +1,7 @@
 package Database;
 
 import Model.User;
-import View.MainBorderPaneController;
+import Controller.MainBorderPaneController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

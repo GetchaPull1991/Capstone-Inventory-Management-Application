@@ -1,4 +1,4 @@
-package View;
+package Controller;
 
 import Database.PartDatabase;
 import Database.ProductDatabase;

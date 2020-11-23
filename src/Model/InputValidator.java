@@ -1,7 +1,7 @@
 package Model;
 
+import Controller.*;
 import Database.UserDatabase;
-import View.*;
 
 public class InputValidator {
 

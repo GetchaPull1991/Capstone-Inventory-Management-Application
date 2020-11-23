@@ -1,4 +1,4 @@
-package View;
+package Controller;
 
 import Model.Customer;
 import Database.CustomerDatabase;
