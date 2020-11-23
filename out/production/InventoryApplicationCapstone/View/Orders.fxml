@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="View.OrdersController"
+      prefHeight="400.0" prefWidth="600.0" spacing="10">
+
+    <padding><Insets topRightBottomLeft="10"/></padding>
+    <VBox styleClass="formGroup" spacing="20">
+        <HBox spacing="10" >
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <Label text="ID"/>
+                <TextField fx:id="idField" disable="true" promptText="ID Auto-Generated"/>
+                <Label text="Customer "/>
+                <ComboBox fx:id="customerComboBox" promptText="Select a Customer"/>
+                <Label text="Due Date"/>
+                <DatePicker fx:id="dueDatePicker"/>
+            </VBox>
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Products" alignment="BASELINE_CENTER"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <TableView fx:id="productsTableView" prefHeight="150" prefWidth="275">
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    <placeholder><Label text="No Products Available"/></placeholder>
+                    <columns>
+                        <TableColumn fx:id="productIdColumn" text="Product ID"/>
+                        <TableColumn fx:id="productNameColumn" text="Name"/>
+                        <TableColumn fx:id="productPriceColumn" text="Price"/>
+                        <TableColumn fx:id="productStockColumn" text="Stock"/>
+                    </columns>
+                </TableView>
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="addProductButton" text="Add Product"/>
+                </HBox>
+            </VBox>
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Order Products" alignment="BASELINE_CENTER"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <TableView fx:id="orderProductsTableView" prefHeight="150" prefWidth="275">
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    <placeholder><Label text="No Products In Order"/></placeholder>
+                    <columns>
+                        <TableColumn fx:id="orderProductsIdColumn" text="Product ID"/>
+                        <TableColumn fx:id="orderProductsNameColumn" text="Name"/>
+                        <TableColumn fx:id="orderProductsPriceColumn" text="Price"/>
+                    </columns>
+                </TableView>
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="removeProductButton" text="Remove Product"/>
+                </HBox>
+            </VBox>
+        </HBox>
+        <HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <VBox>
+                <Region VBox.vgrow="ALWAYS"/>
+                <Button fx:id="submitButton" text="Create New Order"/>
+            </VBox>
+        </HBox>
+    </VBox>
+    <TableView fx:id="ordersTable" VBox.vgrow="ALWAYS">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+        <columns>
+            <TableColumn fx:id="orderIdColumn" text="Order ID"/>
+            <TableColumn fx:id="customerIdColumn" text="Customer ID"/>
+            <TableColumn fx:id="customerNameColumn" text="Customer Name"/>
+            <TableColumn fx:id="productsColumn" text="Products In Order"/>
+            <TableColumn fx:id="orderCostColumn" text="Total Cost"/>
+            <TableColumn fx:id="createdDateColumn" text="Order Created"/>
+            <TableColumn fx:id="dueDateColumn" text="Order Due"/>
+        </columns>
+    </TableView>
+    <HBox spacing="10">
+        <Label text="Search Orders: "/>
+        <TextField fx:id="orderSearchField" promptText="Search..."/>
+        <Label fx:id="errorLabel" visible="false"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="modifyButton" text="Modify"/>
+        <Button fx:id="deleteButton" text="Cancel Order"/>
+    </HBox>
+</VBox>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="View.ProductsController"
+      prefHeight="400.0" prefWidth="600.0" spacing="20">
+    <padding><Insets topRightBottomLeft="10"/></padding>
+    <VBox styleClass="formGroup">
+        <HBox spacing="10" VBox.vgrow="ALWAYS" >
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <Label text="Product Name"/>
+                <TextField fx:id="nameField"  promptText="Enter The Product Name"/>
+                <Label text="ID"/>
+                <TextField fx:id="idField" disable="true" promptText="Auto-Generated"/>
+                <Label text="Price"/>
+                <TextField fx:id="priceField" disable="true" promptText="Auto-Generated"/>
+                <Label text="Stock"/>
+                <TextField fx:id="stockField" disable="true" promptText="Auto-Generated"/>
+            </VBox>
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="All Parts" alignment="BASELINE_CENTER"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <TableView fx:id="partsTableView" prefHeight="150" prefWidth="275">
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    <placeholder><Label text="No Parts Available"/></placeholder>
+                    <columns>
+                        <TableColumn fx:id="partIdColumn" text="Part ID"/>
+                        <TableColumn fx:id="partNameColumn" text="Name"/>
+                        <TableColumn fx:id="partPriceColumn" text="Price"/>
+                    </columns>
+                </TableView>
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="addPartButton" text="Add Part"/>
+                </HBox>
+            </VBox>
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Product Parts" alignment="BASELINE_CENTER"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <TableView fx:id="productPartsTableView" prefHeight="150" prefWidth="275">
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    <placeholder><Label text="No Parts In Product"/></placeholder>
+                    <columns>
+                        <TableColumn fx:id="productPartsIdColumn" text="Part ID"/>
+                        <TableColumn fx:id="productPartNameColumn" text="Name"/>
+                        <TableColumn fx:id="productPartPriceColumn" text="Price"/>
+                    </columns>
+                </TableView>
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="removePartButton" text="Remove Part"/>
+                </HBox>
+            </VBox>
+        </HBox>
+        <HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <VBox>
+                <Region VBox.vgrow="ALWAYS"/>
+                <Button fx:id="submitButton" text="Create New Product"/>
+            </VBox>
+        </HBox>
+    </VBox>
+    <TableView fx:id="productsTable">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+        <columns>
+            <TableColumn fx:id="productIdColumn" text="Product ID"/>
+            <TableColumn fx:id="productNameColumn" text="Product Name"/>
+            <TableColumn fx:id="partsColumn" text="Parts In Product"/>
+            <TableColumn fx:id="productPriceColumn" text="Price"/>
+            <TableColumn fx:id="stockColumn" text="Stock"/>
+        </columns>
+    </TableView>
+    <HBox spacing="10">
+        <Label fx:id="errorLabel" visible="false" styleClass="errorLabel"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="modifyButton" text="Modify"/>
+        <Button fx:id="deleteButton" text="Delete"/>
+    </HBox>
+</VBox>

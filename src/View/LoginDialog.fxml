@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="View.LoginDialogController"
+            prefHeight="400.0" prefWidth="600.0">
+    <top>
+        <HBox styleClass="headerHBox">
+            <padding><Insets bottom="20" top="20" left="20" right="20"/></padding>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Capstone Inventory Management Login" styleClass="dialogHeaderLabel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
+    <center>
+        <VBox spacing="10">
+            <padding><Insets topRightBottomLeft="10"/></padding>
+            <HBox spacing="20">
+                <Label text="Username: "/>
+                <TextField fx:id="usernameField" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <HBox spacing="20">
+                <Label text="Password: "/>
+                <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <Label fx:id="errorLabel" styleClass="errorLabel" visible="false"/>
+        </VBox>
+    </center>
+    <bottom>
+        <HBox spacing="10">
+            <padding><Insets bottom="15" right="15"/></padding>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="loginButton" text="Login"/>
+            <Button fx:id="cancelButton" text="Cancel"/>
+        </HBox>
+    </bottom>
+</BorderPane>

@@ -1,0 +1,81 @@
+
+.menuButton{
+    -fx-background-color: transparent;
+}
+
+.menuButton:hover {
+    -fx-background-color: #1c98ff;
+}
+
+#mainHeaderLabel{
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+}
+
+#sideMenuVbox{
+    -fx-background-color: #59b4ff;
+    -fx-border-width: .1px;
+    -fx-border-color: black;
+}
+
+.headerHBox {
+    -fx-background-color: #59b4ff;
+    -fx-border-width: .1px;
+    -fx-border-color: black;
+}
+
+#headerLabel{
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-font-style: italic;
+    /*-fx-text-fill: #1c98ff;*/
+}
+
+.dialogHeaderLabel{
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-font-style: italic;
+}
+
+.root{
+    -fx-background-color: #ebf2ff;
+}
+
+.formGroup{
+    -fx-border-width: .5px;
+    -fx-border-color: #1c98ff;
+    -fx-border-radius: 10px;
+    -fx-padding: 10px 10px 10px 10px;
+}
+
+.table-view {
+    -fx-border-color: #1c98ff;
+}
+
+.table-view .column-header {
+    -fx-background-color: #52b0ff;
+}
+
+.errorLabel{
+    -fx-border-width: 2px;
+    -fx-border-color: red;
+    -fx-padding: 5px 5px 5px 5px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: red;
+    -fx-font-weight: bold;
+}
+
+#customerComboBox{
+    -fx-pref-height: 50px;
+}
+
+/*VBox {
+    -fx-border-width: .5px;
+    -fx-border-color: blue;
+}
+
+HBox {
+    -fx-border-width: .5px;
+    -fx-border-color: red;
+}*/
