@@ -4,30 +4,26 @@ import javafx.collections.ObservableList;
 
 import java.time.LocalDate;
 
-public class Product {
+public abstract class Product {
 
-    private ObservableList<Part> associatedParts;
-    private String associatedPartsString;
+    private ObservableList<ProductPart> productParts;
+    private String productPartsString;
     private int id;
     private String name;
     private double price;
-    private int stock;
     private LocalDate createdDate;
 
     /**
      * @param id set the id
      * @param name set the name
-     * @param price set the price
-     * @param stock set the stock
      */
-    public Product(int id, String name, double price, int stock, ObservableList<Part> associatedParts){
+    public Product(int id, String name, ObservableList<ProductPart> productParts){
         this.id = id;
         this.name = name;
-        this.price = price;
-        this.stock = stock;
-        this.associatedParts = associatedParts;
+        this.productParts = productParts;
         this.createdDate = LocalDate.now();
-        setAssociatedPartsString();
+        setProductPartsString();
+        setProductPrice();
     }
 
 
@@ -39,8 +35,8 @@ public class Product {
         this.createdDate = createdDate;
     }
 
-    public String getAssociatedPartsString() {
-        return associatedPartsString;
+    public String getProductPartsString() {
+        return productPartsString;
     }
 
     /**
@@ -65,12 +61,6 @@ public class Product {
         this.price = price;
     }
 
-    /**
-     * @param stock the stock to set
-     */
-    public void setStock(int stock){
-        this.stock = stock;
-    }
 
     /**
      * @param min the min to set
@@ -107,47 +97,42 @@ public class Product {
         return price;
     }
 
-    /**
-     * @return the stock
-     */
-    public int getStock() {
-        return stock;
+    public void setProductParts(ObservableList<ProductPart> productParts){
+        this.productParts = productParts;
+        setProductPartsString();
     }
 
-
-    public void setAssociatedParts(ObservableList<Part> associatedParts){
-        this.associatedParts = associatedParts;
-        setAssociatedPartsString();
-    }
-
-    public void setAssociatedPartsString(){
+    public void setProductPartsString(){
 
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < associatedParts.size(); i++){
-            builder.append(associatedParts.get(i).getName());
-            if (associatedParts.size() > 1 && i != associatedParts.size() - 1){
+        for (int i = 0; i < productParts.size(); i++){
+            builder.append(productParts.get(i).getName());
+            builder.append(" x ");
+            builder.append(productParts.get(i).getQuantity());
+            if (productParts.size() > 1 && i != productParts.size() - 1){
                 builder.append("\n");
             }
         }
 
-        this.associatedPartsString = builder.toString();
+        this.productPartsString = builder.toString();
     }
 
-    public void updateStock(){
-
-        //Set the stock of the product to the lowest stock of any part
-        for (Part part : associatedParts){
-            if (part.getStock() < this.stock){
-                this.stock = part.getStock();
-            }
-        }
-    }
 
     /**
      * @return the associated parts
      */
-    public ObservableList<Part> getAssociatedParts() {
-        return associatedParts;
+    public ObservableList<ProductPart> getProductParts() {
+        return productParts;
+    }
+
+    public void setProductPrice(){
+        double price = 0;
+
+        for (ProductPart productPart : productParts){
+            price += productPart.getPrice() * productPart.getQuantity();
+        }
+
+        this.price = price * 1.32;
     }
 
 }

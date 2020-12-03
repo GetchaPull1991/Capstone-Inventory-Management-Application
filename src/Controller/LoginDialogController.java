@@ -17,7 +17,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class LoginDialogController implements Initializable {
-
     @FXML
     public TextField usernameField;
     @FXML
@@ -34,12 +33,13 @@ public class LoginDialogController implements Initializable {
         setButtonEventHandlers();
     }
 
+    /** Set button event handlers */
     private void setButtonEventHandlers(){
 
         //Set Login button event
         loginButton.setOnAction(e -> {
             try {
-                login();
+                attemptLogin();
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -56,8 +56,10 @@ public class LoginDialogController implements Initializable {
 
     }
 
-    private void login() throws IOException {
+    /** Attempt to Login with the User credentials */
+    private void attemptLogin() throws IOException {
 
+        //Validate the Login form
         if (InputValidator.validateLoginForm(this)){
 
             //Get the current user
@@ -73,17 +75,17 @@ public class LoginDialogController implements Initializable {
             Stage stage = new Stage();
             Scene scene = new Scene(root, 1200, 745);
 
+            //Set the Stylesheet
             scene.getStylesheets().add(Main.stylesheetUrl.toExternalForm());
 
             //Set the scene
             stage.setScene(scene);
             stage.setTitle("Capstone Inventory Management");
             stage.setResizable(false);
+
             //Close the current stage and open the new stage
             currentStage.close();
             stage.show();
-
-
         }
     }
 }

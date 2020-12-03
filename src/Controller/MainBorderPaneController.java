@@ -20,8 +20,6 @@ import java.util.ResourceBundle;
 
 public class MainBorderPaneController implements Initializable {
     @FXML
-    public Button dashboardButton;
-    @FXML
     public Button customersButton;
     @FXML
     public Button ordersButton;
@@ -51,6 +49,7 @@ public class MainBorderPaneController implements Initializable {
     Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
     Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
 
+    //The current User logged in to the application
     public static User currentUser;
 
     @Override
@@ -118,6 +117,7 @@ public class MainBorderPaneController implements Initializable {
         changePasswordIcon.setFitWidth(40);
         changePasswordButton.setGraphic(changePasswordIcon);
 
+
         //Bind the width of the icons to the width of the side menu vbox
         customersButton.prefWidthProperty().bind(sideMenuVbox.widthProperty());
         ordersButton.prefWidthProperty().bind(sideMenuVbox.widthProperty());
@@ -128,59 +128,79 @@ public class MainBorderPaneController implements Initializable {
         reportsButton.prefWidthProperty().bind(sideMenuVbox.widthProperty());
         logoutButton.prefWidthProperty().bind(sideMenuVbox.widthProperty());
         changePasswordButton.prefWidthProperty().bind(sideMenuVbox.widthProperty());
-
     }
 
+    /** Check the User's privileges */
     private void checkUserPrivileges(){
         if (!currentUser.getPrivileges().equals("ADMIN")){
             sideMenuVbox.getChildren().remove(usersButton);
         }
     }
 
+    /** Logout of the application */
     private void logout(){
 
+        //Confirm the User want's to logout of the application
         confirmationAlert.setTitle("Logout");
         confirmationAlert.setHeaderText("Logout");
         confirmationAlert.setContentText("Are you sure you want to logout?");
         confirmationAlert.showAndWait().ifPresent(response -> {
             if(response.equals(ButtonType.OK)){
-                try{
-                    Parent root = FXMLLoader.load(getClass().getResource("/View/LoginDialog.fxml"));
-                    Stage stage = new Stage();
-                    Scene scene = new Scene(root, 400, 225);
-                    scene.getStylesheets().add(Main.stylesheetUrl.toExternalForm());
-                    stage.setScene(scene);
-                    stage.setTitle("Capstone Inventory Management Login");
-
-                    //Get current stage and close
-                    Stage currentStage = (Stage) logoutButton.getScene().getWindow();
-                    currentStage.close();
-
-                    //Show login form
-                    stage.setResizable(false);
-                    stage.show();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
+                displayLoginForm();
             }
         });
-
-
     }
 
-    private void showChangePasswordDialog(){
+    /** Display the Login form */
+    private void displayLoginForm(){
         try{
-            Parent root = FXMLLoader.load(getClass().getResource("/View/ChangePasswordDialog.fxml"));
+
+            //Get the resource and create the stage
+            Parent root = FXMLLoader.load(getClass().getResource("/View/LoginDialog.fxml"));
             Stage stage = new Stage();
-            Scene scene = new Scene(root, 400, 390);
+
+            //Create the scene and set the stylehseet
+            Scene scene = new Scene(root, 400, 225);
             scene.getStylesheets().add(Main.stylesheetUrl.toExternalForm());
+
+            //Set the scene and title of the stage
             stage.setScene(scene);
-            stage.setTitle("Change Password");
+            stage.setTitle("Capstone Inventory Management Login");
+
+            //Get current stage and close
+            Stage currentStage = (Stage) logoutButton.getScene().getWindow();
+            currentStage.close();
 
             //Show login form
             stage.setResizable(false);
+            stage.show();
+
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    /** Open the Change Password Dialog */
+    private void showChangePasswordDialog(){
+
+        try{
+            //Get the resource and create the stage
+            Parent root = FXMLLoader.load(getClass().getResource("/View/ChangePasswordDialog.fxml"));
+            Stage stage = new Stage();
+
+            //Create the scene and add the stylesheet
+            Scene scene = new Scene(root, 400, 390);
+            scene.getStylesheets().add(Main.stylesheetUrl.toExternalForm());
+
+            //Set the scene and title of the stage
+            stage.setScene(scene);
+            stage.setTitle("Change Password");
+
+            //Display the stage
+            stage.setResizable(false);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.show();
+
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -237,6 +257,7 @@ public class MainBorderPaneController implements Initializable {
             aboutDialog.show();
         });
 
+        //Open the Users form
         usersButton.setOnAction( e -> {
             try {
                 headerLabel.setText("Users");
@@ -246,8 +267,20 @@ public class MainBorderPaneController implements Initializable {
             }
         });
 
+        //Open the Reports form
+        reportsButton.setOnAction( e -> {
+            try {
+                headerLabel.setText("Reports");
+                contentBorderPane.setCenter(FXMLLoader.load(getClass().getResource("/View/Reports.fxml")));
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+
+        //Logout of the application
         logoutButton.setOnAction(e -> logout());
 
+        //Open the Change Password Dialog
         changePasswordButton.setOnAction(e -> showChangePasswordDialog());
 
     }

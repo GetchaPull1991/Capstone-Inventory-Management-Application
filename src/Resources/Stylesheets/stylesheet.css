@@ -4,7 +4,7 @@
 }
 
 .menuButton:hover {
-    -fx-background-color: #1c98ff;
+    -fx-background-color: #2982ff;
 }
 
 #mainHeaderLabel{
@@ -14,13 +14,13 @@
 }
 
 #sideMenuVbox{
-    -fx-background-color: #59b4ff;
+    -fx-background-color: linear-gradient(to right, #1f63c2, #2982ff);
     -fx-border-width: .1px;
     -fx-border-color: black;
 }
 
 .headerHBox {
-    -fx-background-color: #59b4ff;
+    -fx-background-color: linear-gradient(to left, #1f63c2, #2982ff);
     -fx-border-width: .1px;
     -fx-border-color: black;
 }
@@ -44,17 +44,17 @@
 
 .formGroup{
     -fx-border-width: .5px;
-    -fx-border-color: #1c98ff;
+    -fx-border-color: #2982ff;
     -fx-border-radius: 10px;
     -fx-padding: 10px 10px 10px 10px;
 }
 
 .table-view {
-    -fx-border-color: #1c98ff;
+    -fx-border-color: #2982ff;
 }
 
 .table-view .column-header {
-    -fx-background-color: #52b0ff;
+    -fx-background-color: #2982ff;
 }
 
 .errorLabel{
@@ -68,6 +68,15 @@
 
 #customerComboBox{
     -fx-pref-height: 50px;
+}
+
+.tab-pane *.tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane {
+    -fx-border-width: 0.2px;
+    -fx-border-color: #2982ff;
 }
 
 /*VBox {

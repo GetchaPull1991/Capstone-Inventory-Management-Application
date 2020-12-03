@@ -12,18 +12,22 @@ import java.net.URL;
 public class Main extends Application {
 
     public static URL stylesheetUrl;
-    //Clear part form on submit
-    //Calculate manufacturing fee with all parts in product
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+
+        //Get the resource and create the mainUI scene
         Parent root = FXMLLoader.load(getClass().getResource("../View/LoginDialog.fxml"));
         primaryStage.setTitle("Capstone Inventory Management Login");
         Scene mainUI = new Scene(root, 400, 225);
 
+        //Get the stylesheet URL
         stylesheetUrl = getClass().getResource("../Resources/Stylesheets/stylesheet.css");
 
+        //Set the stylesheet
         mainUI.getStylesheets().add(stylesheetUrl.toExternalForm());
+
+        //Set the scene and show the stage
         primaryStage.setScene(mainUI);
         primaryStage.setResizable(false);
         primaryStage.show();

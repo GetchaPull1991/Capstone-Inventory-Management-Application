@@ -1,20 +1,17 @@
 package Model;
 
 
-public class Part {
+public abstract class Part {
+
     private int id;
     private String name;
     private double price;
-    private int stock;
 
-
-    public Part(int id, String name, double price, int stock) {
+    public Part (int id, String name, double price){
         this.id = id;
         this.name = name;
         this.price = price;
-        this.stock = stock;
     }
-
     /**
      * @return the id
      */
@@ -56,19 +53,4 @@ public class Part {
     public void setPrice(double price) {
         this.price = price;
     }
-
-    /**
-     * @return the stock
-     */
-    public int getStock() {
-        return stock;
-    }
-
-    /**
-     * @param stock the stock to set
-     */
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-
 }

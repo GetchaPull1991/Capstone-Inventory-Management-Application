@@ -39,6 +39,8 @@
                     </columns>
                 </TableView>
                 <HBox>
+                    <Label text="Search: "/>
+                    <TextField fx:id="productSearchField" promptText="Search by ID or Name"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Button fx:id="addProductButton" text="Add Product"/>
                 </HBox>
@@ -56,6 +58,7 @@
                         <TableColumn fx:id="orderProductsIdColumn" text="Product ID"/>
                         <TableColumn fx:id="orderProductsNameColumn" text="Name"/>
                         <TableColumn fx:id="orderProductsPriceColumn" text="Price"/>
+                        <TableColumn fx:id="orderProductsQtyColumn" text="Quantity"/>
                     </columns>
                 </TableView>
                 <HBox>
@@ -87,8 +90,8 @@
         </columns>
     </TableView>
     <HBox spacing="10">
-        <Label text="Search Orders: "/>
-        <TextField fx:id="orderSearchField" promptText="Search..."/>
+        <Label text="Search :" />
+        <TextField fx:id="orderSearchField" promptText="Search by ID, Name, Date or Product" prefWidth="210"/>
         <Label fx:id="errorLabel" visible="false"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="modifyButton" text="Modify"/>

@@ -3,17 +3,16 @@ package Controller;
 import Database.OrderDatabase;
 import Database.PartDatabase;
 import Database.ProductDatabase;
-import Model.InputValidator;
-import Model.Order;
-import Model.Part;
-import Model.Product;
+import Model.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 
@@ -23,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class ProductsController implements Initializable {
     @FXML
@@ -34,37 +34,39 @@ public class ProductsController implements Initializable {
     @FXML
     public TextField stockField;
     @FXML
-    public TableView<Part> partsTableView;
+    public TableView<InventoryPart> partsTableView;
     @FXML
-    public TableColumn<Part, Integer> partIdColumn;
+    public TableColumn<InventoryPart, Integer> partIdColumn;
     @FXML
-    public TableColumn<Part, String> partNameColumn;
+    public TableColumn<InventoryPart, String> partNameColumn;
     @FXML
-    public TableColumn<Part, Double> partPriceColumn;
+    public TableColumn<InventoryPart, Double> partPriceColumn;
     @FXML
-    public TableView<Part> productPartsTableView;
+    public TableView<ProductPart> productPartsTableView;
     @FXML
-    public TableColumn<Part, Integer> productPartsIdColumn;
+    public TableColumn<ProductPart, Integer> productPartsIdColumn;
     @FXML
-    public TableColumn<Part, String> productPartNameColumn;
+    public TableColumn<ProductPart, String> productPartNameColumn;
     @FXML
-    public TableColumn<Part, Double> productPartPriceColumn;
+    public TableColumn<ProductPart, Double> productPartPriceColumn;
+    @FXML
+    public TableColumn<ProductPart, Integer> productPartQuantityColumn;
     @FXML
     public Button addPartButton;
     @FXML
     public Button submitButton;
     @FXML
-    public TableView<Product> productsTable;
+    public TableView<InventoryProduct> productsTable;
     @FXML
-    public TableColumn<Product, Integer> productIdColumn;
+    public TableColumn<InventoryProduct, Integer> productIdColumn;
     @FXML
-    public TableColumn<Product, String> productNameColumn;
+    public TableColumn<InventoryProduct, String> productNameColumn;
     @FXML
-    public TableColumn<Product, String> partsColumn;
+    public TableColumn<InventoryProduct, String> partsColumn;
     @FXML
-    public TableColumn<Product, Double> productPriceColumn;
+    public TableColumn<InventoryProduct, Double> productPriceColumn;
     @FXML
-    public TableColumn<Product, Integer> stockColumn;
+    public TableColumn<InventoryProduct, Integer> stockColumn;
     @FXML
     public Button modifyButton;
     @FXML
@@ -73,14 +75,19 @@ public class ProductsController implements Initializable {
     public Button removePartButton;
     @FXML
     public Label errorLabel;
+    @FXML
+    public TextField productSearchField;
+    @FXML
+    public TextField partSearchField;
 
     //Store the parts to be associated with the new product
-    ObservableList<Part> productParts = FXCollections.observableArrayList();
+    ObservableList<ProductPart> productParts = FXCollections.observableArrayList();
 
     //Create alerts
     Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
     Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
 
+    //Create currency format
     NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
 
 
@@ -88,6 +95,8 @@ public class ProductsController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellFactories();
         setButtonEventHandlers();
+
+        //Populate tables after load
         Platform.runLater(() -> new Thread (() -> {
             productsTable.setItems(ProductDatabase.getAllProducts());
             partsTableView.setItems(PartDatabase.getAllParts());
@@ -100,11 +109,11 @@ public class ProductsController implements Initializable {
         //Product Table
         productIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         productNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        partsColumn.setCellValueFactory(new PropertyValueFactory<>("associatedPartsString"));
+        partsColumn.setCellValueFactory(new PropertyValueFactory<>("productPartsString"));
 
         //Wrap Text in table cell
         partsColumn.setCellFactory(tableCell ->{
-            TableCell<Product, String> cell = new TableCell<>();
+            TableCell<InventoryProduct, String> cell = new TableCell<>();
             Text text = new Text();
             cell.setGraphic(text);
             cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
@@ -165,11 +174,15 @@ public class ProductsController implements Initializable {
                 }
             }
         });
+        productPartQuantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
 
     }
 
     /** Create event handlers for all buttons*/
     private void setButtonEventHandlers(){
+
+        //Add listener to product parts to repopulate table on change
+        productParts.addListener((ListChangeListener<ProductPart>) change -> productPartsTableView.setItems(productParts));
 
         //Set event for "Add Part" button
         addPartButton.setOnAction(e -> addPart());
@@ -185,6 +198,12 @@ public class ProductsController implements Initializable {
 
         //Set event for "Modify" button
         modifyButton.setOnAction(e -> populateProductFormForUpdate());
+
+        //Set part search key event
+        partSearchField.setOnKeyPressed(keyEvent -> {if (keyEvent.getCode().equals(KeyCode.ENTER)){searchParts();}});
+
+        //Set product search key event
+        productSearchField.setOnKeyPressed(keyEvent -> {if (keyEvent.getCode().equals(KeyCode.ENTER)){searchProducts();}});
     }
 
     /** Handle add new Product*/
@@ -201,9 +220,10 @@ public class ProductsController implements Initializable {
             }
 
             //Add product to database
-            ProductDatabase.addProduct(new Product(id,
+            ProductDatabase.addProduct(new InventoryProduct(
+                    id,
                     nameField.getText(),
-                    getProductPrice(), getProductStock(), productParts));
+                    productParts));
 
             //Update the products table
             productsTable.setItems(ProductDatabase.getAllProducts());
@@ -244,16 +264,16 @@ public class ProductsController implements Initializable {
         }
     }
 
-    private void updateProduct(Product product){
+    private void updateProduct(InventoryProduct product){
 
         //Check if input is valid
         if (InputValidator.validateProductForm(this)){
 
             //Set new values
             product.setName(nameField.getText());
-            product.setAssociatedParts(productParts);
-            product.setPrice(getProductPrice());
-            product.setStock(getProductStock());
+            product.setProductParts(productParts);
+            product.setProductPrice();
+            product.setProductStock();
 
             ProductDatabase.updateProduct(product);
             productsTable.setItems(ProductDatabase.getAllProducts());
@@ -266,7 +286,7 @@ public class ProductsController implements Initializable {
     private void populateProductFormForUpdate(){
 
         //Get the selected product
-        Product product = productsTable.getSelectionModel().getSelectedItem();
+        InventoryProduct product = productsTable.getSelectionModel().getSelectedItem();
 
         //Check if a product was selected
         if (product != null){
@@ -276,7 +296,7 @@ public class ProductsController implements Initializable {
             idField.setText(Integer.toString(product.getId()));
             priceField.setText(currencyFormat.format(product.getPrice()));
             stockField.setText(Integer.toString(product.getStock()));
-            productParts = product.getAssociatedParts();
+            productParts = product.getProductParts();
             productPartsTableView.setItems(productParts);
 
             //Set submit button text and event
@@ -291,40 +311,49 @@ public class ProductsController implements Initializable {
 
     /** Handle add Part */
     private void addPart(){
-        Part part = partsTableView.getSelectionModel().getSelectedItem();
+        InventoryPart part = partsTableView.getSelectionModel().getSelectedItem();
 
-        //Check if part is null or the table row is disabled
+        //Check if part is null
         if (part != null){
 
-            //Add part to product parts list and table
-            productParts.add(part);
-            productPartsTableView.setItems(productParts);
+            //Check if the list contains any parts with the same id
+            if (productParts.stream().anyMatch(o -> o.getId() == part.getId())){
 
-            priceField.setText(currencyFormat.format(getProductPrice()));
-            stockField.setText(Integer.toString(getProductStock()));
+                //If a part is found, increment the quantity
+                productParts.stream().filter(productPart -> productPart.getId() == part.getId()).collect(Collectors.toList()).get(0).incrementQuantity();
 
+            } else {
+                //If a part is not found, add a new part
+                productParts.add(new ProductPart(part.getId(), part.getName(), part.getPrice(), 1));
+            }
+            //Update the stock and price fields
+            setPriceAndStockFields();
         }
     }
 
     /** Handle remove Part */
     private void removePart(){
-        Part part = productPartsTableView.getSelectionModel().getSelectedItem();
+        ProductPart part = productPartsTableView.getSelectionModel().getSelectedItem();
 
         //Check if the part is null
         if (part != null){
+            //Check if the part quantity is 1
+            if (part.getQuantity() == 1){
 
-            //Remove the part from the product parts list and table
-            productParts.remove(part);
-            productPartsTableView.setItems(productParts);
-            partsTableView.setItems(PartDatabase.getAllParts());
+                //Remove the part from the product parts list and table
+                productParts.remove(part);
+                partsTableView.setItems(PartDatabase.getAllParts());
 
-            if (productParts.size() > 0) {
-                priceField.setText(currencyFormat.format(getProductPrice()));
-                stockField.setText(Integer.toString(getProductStock()));
-            } else {
-                priceField.setText("Auto-Generated");
-                stockField.setText("Auto-Generated");
+                setPriceAndStockFields();
+
+            //Decrement the stock if the quantity is greater than 1
+            } else if (part.getQuantity() > 1) {
+                part.decrementQuantity();
+                productParts.set(productPartsTableView.getSelectionModel().getSelectedIndex(), part);
             }
+
+            setPriceAndStockFields();
+        //Display alert
         } else {
             displayNoSelectionAlert("Part", "Remove");
         }
@@ -336,6 +365,27 @@ public class ProductsController implements Initializable {
         productParts.clear();
         productPartsTableView.getItems().clear();
         partsTableView.getSelectionModel().clearSelection();
+        setPriceAndStockFields();
+    }
+
+    private void setPriceAndStockFields(){
+
+        //Set the price and stock fields
+        if (productParts.size() > 0) {
+
+            double price = 0;
+
+            for (ProductPart productPart : productParts){
+                price += productPart.getPrice() * productPart.getQuantity();
+            }
+
+            priceField.setText(currencyFormat.format(price * 1.32));
+            stockField.setText(Integer.toString(getProductStock()));
+        } else {
+            priceField.setText("Auto-Generated");
+            stockField.setText("Auto-Generated");
+        }
+
     }
 
     /**
@@ -393,52 +443,43 @@ public class ProductsController implements Initializable {
     }
 
     /**
-     * Get the price of the product
-     * @return the price
-     */
-    private double getProductPrice(){
-
-        //Store the base price and stock
-        double price = 0;
-
-        if (productParts.size() > 0) {
-            //Get the sum of the part prices
-            for (Part part : productParts) {
-                price += part.getPrice();
-            }
-
-            //Add manufacturing fee to product price
-            double MANUFACTURING_FEE = 1.32;
-            price *= MANUFACTURING_FEE;
-        }
-
-        return price;
-    }
-
-    /**
      * Get the stock of the product
      * @return the stock
      */
     private int getProductStock(){
 
-        //Initialize Stock
-        int stock = 0;
+        //Initialize stock with first product part
+        int stock = PartDatabase.getPartById(productParts.get(0).getId()).getStock();
 
-        //Check if product parts has parts
-        if (productParts.size() > 0) {
+        //For each product part
+        for (ProductPart part : productParts){
 
-            //Set base stock
-            stock = productParts.get(0).getStock();
+            /*
+            The part stock is determined by the stock of the Inventory Part divided
+            by the quantity of the Product Part in the product.
+            Therefore if there are 12 Inventory Parts available
+            and the Product Part requires 2 of the same part,
+            only 6 products will be available.
+            In the same sense, if the Inventory stock was 13,
+            only 6 products would be available.
+             */
+            int partStock = PartDatabase.getPartById(part.getId()).getStock() / part.getQuantity();
 
-            //Get the lowest stock of associated parts
-            for (Part part : productParts) {
-                if (part.getStock() < stock) {
-                    stock = part.getStock();
-                }
+            //If inventory stock is less than stock
+            if (stock > partStock){
+
+                //Update stock to inventory stock
+                stock = partStock;
             }
         }
-
         return stock;
     }
 
+    private void searchProducts(){
+        productsTable.setItems(ProductDatabase.searchInventoryProducts(productSearchField.getText().trim()));
+    }
+
+    private void searchParts(){
+        partsTableView.setItems(PartDatabase.searchInventoryParts(partSearchField.getText().trim()));
+    }
 }

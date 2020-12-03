@@ -1,8 +1,8 @@
 package Controller;
 
-import Model.Customer;
 import Database.CustomerDatabase;
 import Database.OrderDatabase;
+import Model.Customer;
 import Model.InputValidator;
 import Model.Order;
 import javafx.application.Platform;
@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 
 import java.net.URL;
@@ -62,6 +63,8 @@ public class CustomersController implements Initializable {
     public Label errorLabel;
     @FXML
     public TextField cityField;
+    @FXML
+    public TextField searchField;
 
     Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
     Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -74,6 +77,7 @@ public class CustomersController implements Initializable {
         Platform.runLater(() -> {customersTable.setItems(CustomerDatabase.getAllCustomers());});
     }
 
+    /** Set button event handlers */
     private void setButtonEventHandlers(){
 
         //Set event for "Add New Customer" button
@@ -84,9 +88,15 @@ public class CustomersController implements Initializable {
 
         //Set event for "Modify" button
         modifyButton.setOnAction(e -> populateCustomerFormForUpdate());
+
+        //Set event for search field
+        searchField.setOnKeyPressed(e -> {if (e.getCode().equals(KeyCode.ENTER)) {searchCustomers();}});
     }
 
+    /** Add a new Customer to the database */
     private void addNewCustomer(){
+
+        //Validate the Customer form
         if (InputValidator.validateCustomerForm(this)){
 
             //Generate unique customer id
@@ -96,6 +106,7 @@ public class CustomersController implements Initializable {
                 id = random.nextInt();
             }
 
+            //Add the new Customer to the database
             CustomerDatabase.addCustomer(new Customer(id,
                     nameField.getText(),
                     streetAddressField.getText(),
@@ -105,12 +116,15 @@ public class CustomersController implements Initializable {
                     countryField.getText(),
                     phoneField.getText()));
 
+            //Clear the Customer form
             clearForm();
 
+            //Update the Customers table from the database
             customersTable.setItems(CustomerDatabase.getAllCustomers());
         }
     }
 
+    /** Delete the selected Customer from the database */
     private void deleteCustomer(){
 
         //Get the selected customer
@@ -129,6 +143,7 @@ public class CustomersController implements Initializable {
                     CustomerDatabase.removeCustomer(customer.getCustomerID());
                     customersTable.setItems(CustomerDatabase.getAllCustomers());
                 } else {
+
                     //Display alert
                     displayPendingOrdersAlert(customer);
                 }
@@ -139,6 +154,7 @@ public class CustomersController implements Initializable {
         }
     }
 
+    /** Populate the form to update the selected Customer */
     private void populateCustomerFormForUpdate(){
 
         //Get the selected Customer
@@ -161,10 +177,12 @@ public class CustomersController implements Initializable {
             submitButton.setOnAction(e -> updateCustomer(customer));
 
         } else {
-        displayNoSelectionAlert("Update");
+            //Display alert
+            displayNoSelectionAlert("Update");
         }
     }
 
+    /** Update the selected customer in the database */
     private void updateCustomer(Customer customer){
 
             //Set the new Customer values
@@ -184,11 +202,12 @@ public class CustomersController implements Initializable {
             submitButton.setText("Create New Customer");
             submitButton.setOnAction(e -> addNewCustomer());
 
-            //Clear the form on update
+            //Clear the form
             clearForm();
 
     }
 
+    /** Set the cell factories for the Customers table */
     private void setCellFactories(){
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         addressColumn.setCellValueFactory(new PropertyValueFactory<>("streetAddress"));
@@ -200,6 +219,7 @@ public class CustomersController implements Initializable {
         countryColumn.setCellValueFactory(new PropertyValueFactory<>("country"));
     }
 
+    /** Display an alert to confirm the User wants to delete the selected Customer */
     private boolean confirmCustomerDelete(){
         //Store result
         AtomicBoolean confirmDelete = new AtomicBoolean();
@@ -214,17 +234,21 @@ public class CustomersController implements Initializable {
         return confirmDelete.get();
     }
 
+    /** Display an alert when the User has not made a selection */
     private void displayNoSelectionAlert(String actionType){
         informationAlert.setTitle(actionType + " Customer");
         informationAlert.setHeaderText("No Customer Selected");
         informationAlert.setContentText("Please select a Customer to " + actionType);
     }
 
+    /** Display an alert when the selected Customer has pending Orders */
     private void displayPendingOrdersAlert(Customer customer){
 
+        //Create String builder to build content of alert
         StringBuilder builder = new StringBuilder();
         builder.append("The Customer has the following pending orders associated with it: \n\n");
 
+        //Append associated Order details to builder
         for (Order order : OrderDatabase.getCustomerOrders(customer.getCustomerID())){
             builder.append("Order ID: ");
             builder.append(order.getOrderID());
@@ -235,14 +259,17 @@ public class CustomersController implements Initializable {
         }
         builder.append("Please fulfill or cancel these Orders before deleting the Customer.");
 
+        //Set Title, Header and Content
         informationAlert.setTitle("Delete Customer");
         informationAlert.setHeaderText("Customer Has Pending Orders");
         informationAlert.setContentText(builder.toString());
         informationAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+
+        //Show alert
         informationAlert.showAndWait();
     }
 
-
+    /** Clear the Customer form on submit */
     private void clearForm(){
         idField.clear();
         nameField.clear();
@@ -252,6 +279,10 @@ public class CustomersController implements Initializable {
         postalCodeField.clear();
         countryField.clear();
         divisionField.clear();
+    }
+
+    private void searchCustomers(){
+        customersTable.setItems(CustomerDatabase.searchCustomers(searchField.getText().trim()));
     }
 
 }

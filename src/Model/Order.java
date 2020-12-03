@@ -10,9 +10,9 @@ public class Order {
     private int orderID;
     private String customerName;
     private int customerID;
-    private ObservableList<Product> products;
+    private ObservableList<OrderProduct> associatedProducts;
     private double orderCost;
-    private String productsString;
+    private String associatedProductsString;
     private LocalDate createdDate;
     private LocalDate dueDate;
 
@@ -20,32 +20,39 @@ public class Order {
      * Create a new order object
      * @param orderID The order id to set
      * @param customer The customer of the order to set
-     * @param products The list of products in the order to set
-     * @param orderCost The cost of the order to set
+     * @param associatedProducts The list of products in the order to set
      * @param createdDate The date the order was made to set
      * @param dueDate The date the order is due to set
      */
-    public Order(int orderID, Customer customer, ObservableList<Product> products, Double orderCost, LocalDate createdDate, LocalDate dueDate){
+    public Order(int orderID, Customer customer, ObservableList<OrderProduct> associatedProducts, LocalDate createdDate, LocalDate dueDate){
         this.orderID = orderID;
         this.customerName = customer.getName();
         this.customerID = customer.getCustomerID();
-        this.products = products;
-        this.orderCost = orderCost;
+        this.associatedProducts = associatedProducts;
+        calculateOrderCost();
         this.createdDate = createdDate;
         this.dueDate = dueDate;
+        setAssociatedProductsString();
+    }
+
+    public String getAssociatedProductsString() {
+        return associatedProductsString;
+    }
+
+    public void setAssociatedProductsString() {
 
         StringBuilder builder = new StringBuilder();
-        for (Product product : products){
-            builder.append(product.getName());
-            builder.append("\n");
+        for (int i = 0; i < associatedProducts.size(); i++){
+            builder.append(associatedProducts.get(i).getName());
+            builder.append(" x ");
+            builder.append(associatedProducts.get(i).getQuantity());
+            if (associatedProducts.size() > 1 && i != associatedProducts.size() - 1){
+                builder.append("\n");
+            }
         }
-        this.productsString = builder.toString();
-    }
 
-    public String getProductsString() {
-        return productsString;
+        this.associatedProductsString = builder.toString();
     }
-
 
     /**
      * Get the id of the order
@@ -91,23 +98,23 @@ public class Order {
      * Get the list of products in the order
      * @return the list
      */
-    public ObservableList<Product> getProducts() {
-        return products;
+    public ObservableList<OrderProduct> getAssociatedProducts() {
+        return associatedProducts;
     }
 
 
     /**
      * Set the list of products in the order
-     * @param products the list to set
+     * @param associatedProducts the list to set
      */
-    public void setProducts(ObservableList<Product> products) {
-        this.products = products;
+    public void setAssociatedProducts(ObservableList<OrderProduct> associatedProducts) {
+        this.associatedProducts = associatedProducts;
         StringBuilder builder = new StringBuilder();
-        for (Product product : products){
+        for (Product product : associatedProducts){
             builder.append(product.getName());
             builder.append("\n");
         }
-        this.productsString = builder.toString();
+        this.associatedProductsString = builder.toString();
     }
 
     /**
@@ -132,5 +139,19 @@ public class Order {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    private void calculateOrderCost(){
+
+        //Initialize cost
+        double cost = 0;
+
+        //Multiple product price by quantity and sum cost
+        for (OrderProduct product : this.associatedProducts){
+            cost += (product.getPrice() * product.getQuantity());
+        }
+
+        //Set order cost
+        this.orderCost = cost;
     }
 }

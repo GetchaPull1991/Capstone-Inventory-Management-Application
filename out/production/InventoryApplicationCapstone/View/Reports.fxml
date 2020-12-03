@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="Controller.ReportsController"
+      prefHeight="400.0" prefWidth="600.0" spacing="20">
+    <padding><Insets topRightBottomLeft="20"/></padding>
+
+    <TabPane>
+        <tabs>
+            <Tab fx:id="ordersTab" text="Order Reports">
+                <VBox spacing="20">
+                    <HBox spacing="20">
+                        <VBox spacing="30">
+                            <Label text="Display Orders associated with a: "/>
+                            <Label text="Select: "/>
+                            <Label text="Date Range of Orders: "/>
+                        </VBox>
+                        <VBox fx:id="comboVBox" spacing="20">
+                            <ComboBox fx:id="searchTypeComboBox"/>
+                        </VBox>
+                    </HBox>
+                    <TableView fx:id="orderTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="orderIDColumn" text="Order ID"/>
+                            <TableColumn fx:id="customerName" text="Customer Name"/>
+                            <TableColumn fx:id="customerIdColumn" text="Customer ID"/>
+                            <TableColumn fx:id="orderProductsColumn" text="Products In Order"/>
+                            <TableColumn fx:id="orderCostColumn" text="Total Cost"/>
+                            <TableColumn fx:id="orderDueDateColumn" text="Order Due"/>
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </Tab>
+            <Tab fx:id="productsTab" text="Product Reports">
+                <TableView fx:id="productsTable">
+                    <columns>
+                        <TableColumn fx:id="productIDColumn" text="Product ID"/>
+                        <TableColumn fx:id="productNameColumn" text="Name"/>
+                        <TableColumn fx:id="productPriceColumn" text="Price"/>
+                        <TableColumn fx:id="productStockColumn" text="Stock"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+            </Tab>
+            <Tab fx:id="partsTab" text="Part Reports">
+                <TableView fx:id="partsTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="partIdColumn" text="Part ID"/>
+                        <TableColumn fx:id="partNameColumn" text="Name"/>
+                        <TableColumn fx:id="partPriceColumn" text="Price"/>
+                        <TableColumn fx:id="partStockColumn" text="Stock"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+            </Tab>
+        </tabs>
+    </TabPane>
+
+</VBox>

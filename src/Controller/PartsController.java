@@ -2,15 +2,14 @@ package Controller;
 
 import Database.PartDatabase;
 import Database.ProductDatabase;
-import Model.InputValidator;
-import Model.Part;
-import Model.Product;
+import Model.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.text.Text;
+
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Random;
@@ -33,19 +32,21 @@ public class PartsController implements Initializable {
     @FXML
     public Label errorLabel;
     @FXML
-    public TableView<Part> partsTable;
+    public TableView<InventoryPart> partsTable;
     @FXML
-    public TableColumn<Part, Integer> idColumn;
+    public TableColumn<InventoryPart, Integer> idColumn;
     @FXML
-    public TableColumn<Part, String> nameColumn;
+    public TableColumn<InventoryPart, String> nameColumn;
     @FXML
-    public TableColumn<Part, Double> priceColumn;
+    public TableColumn<InventoryPart, Double> priceColumn;
     @FXML
-    public TableColumn<Part, Integer> stockColumn;
+    public TableColumn<InventoryPart, Integer> stockColumn;
     @FXML
     public Button modifyButton;
     @FXML
     public Button deleteButton;
+    @FXML
+    public TextField partSearchField;
 
     //Displays as placeholder in parts table while database information is retrieved
     ProgressIndicator indicator = new ProgressIndicator();
@@ -99,12 +100,15 @@ public class PartsController implements Initializable {
 
         //Set the event for the "Modify" button
         modifyButton.setOnAction(e -> populateUpdatePart());
+
+        //Set event for key pressed on part search field
+        partSearchField.setOnKeyPressed(keyEvent -> searchParts());
     }
 
     /** Populate the part form for updating parts */
     private void populateUpdatePart(){
         //Get selected part
-        Part part = partsTable.getSelectionModel().getSelectedItem();
+        InventoryPart part = partsTable.getSelectionModel().getSelectedItem();
 
         //Check if part is null
         if (part != null){
@@ -138,7 +142,7 @@ public class PartsController implements Initializable {
             }
 
             //Add part to the database
-            PartDatabase.addPart(new Part(id,
+            PartDatabase.addPart(new InventoryPart(id,
                     nameField.getText(),
                     Double.parseDouble(priceField.getText()),
                     Integer.parseInt(stockField.getText())));
@@ -179,7 +183,7 @@ public class PartsController implements Initializable {
     }
 
     /** Handle updating a part */
-    private void updatePart(Part part){
+    private void updatePart(InventoryPart part){
         if (InputValidator.validatePartForm(this)){
 
             //Store the original part price
@@ -197,7 +201,7 @@ public class PartsController implements Initializable {
             partsTable.setItems(PartDatabase.getAllParts());
 
             //Update each product associated with the part being updated
-            for (Product product : ProductDatabase.getPartProducts(part.getId())){
+            for (InventoryProduct product : ProductDatabase.getPartProducts(part.getId())){
 
                 /*
                 Set the new product price:
@@ -213,18 +217,9 @@ public class PartsController implements Initializable {
                     product.setPrice((product.getPrice() / MANUFACTURING_FEE) - originalPartPrice + part.getPrice() * MANUFACTURING_FEE);
                 }
 
-
-                //Set the product stock to the lowest part stock
-                int stock = product.getAssociatedParts().get(0).getStock();
-                for (Part associatedPart : product.getAssociatedParts()){
-                    if (associatedPart.getStock() < stock){
-                        stock = associatedPart.getStock();
-                    }
-                }
-                product.setStock(stock);
-
                 //Set the new value of the associated parts string
-                product.setAssociatedPartsString();
+                product.setProductPartsString();
+
 
                 //Update the product in the database
                 ProductDatabase.updateProduct(product);
@@ -292,5 +287,10 @@ public class PartsController implements Initializable {
         nameField.clear();
         priceField.clear();
         stockField.clear();
+    }
+
+    /** Search the parts database with the provided criteria and update the table */
+    private void searchParts(){
+        partsTable.setItems(PartDatabase.searchInventoryParts(partSearchField.getText().trim()));
     }
 }
