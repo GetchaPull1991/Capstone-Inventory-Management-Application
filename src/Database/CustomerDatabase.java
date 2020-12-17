@@ -48,7 +48,7 @@ public class CustomerDatabase extends Database {
         //Disconnect from database
         disconnect();
 
-        //REturn list of customers
+        //Return list of customers
         return customers;
     }
 

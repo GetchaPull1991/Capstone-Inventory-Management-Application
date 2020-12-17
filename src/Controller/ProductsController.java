@@ -24,6 +24,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+/** Class that handles Product form GUI functionality */
 public class ProductsController implements Initializable {
     @FXML
     public TextField nameField;
@@ -81,14 +82,17 @@ public class ProductsController implements Initializable {
     public TextField partSearchField;
 
     //Store the parts to be associated with the new product
-    ObservableList<ProductPart> productParts = FXCollections.observableArrayList();
+    private ObservableList<ProductPart> productParts = FXCollections.observableArrayList();
 
     //Create alerts
-    Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
-    Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+    private final Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+    private final Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
 
     //Create currency format
     NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+
+    //Manufacturing fee
+    public final static double MANUFACTURING_FEE = 1.32;
 
 
     @Override
@@ -96,7 +100,7 @@ public class ProductsController implements Initializable {
         setCellFactories();
         setButtonEventHandlers();
 
-        //Populate tables after load
+        //Populate tables after scene loads
         Platform.runLater(() -> new Thread (() -> {
             productsTable.setItems(ProductDatabase.getAllProducts());
             partsTableView.setItems(PartDatabase.getAllParts());
@@ -223,7 +227,7 @@ public class ProductsController implements Initializable {
             ProductDatabase.addProduct(new InventoryProduct(
                     id,
                     nameField.getText(),
-                    productParts));
+                    productParts, getProductStock()));
 
             //Update the products table
             productsTable.setItems(ProductDatabase.getAllProducts());
@@ -246,7 +250,7 @@ public class ProductsController implements Initializable {
             if (userConfirmedRemoveProduct()) {
 
                 //Check if the product has any orders associated with it
-                if (OrderDatabase.getPendingProductOrders(product.getId()).size() == 0) {
+                if (OrderDatabase.getProductOrders(product.getId()).size() == 0) {
 
                     //Remove the product from the database and update the products table
                     ProductDatabase.removeProduct(product.getId());
@@ -264,6 +268,10 @@ public class ProductsController implements Initializable {
         }
     }
 
+    /**
+     * Update Product
+     * @param product the Product to update
+     */
     private void updateProduct(InventoryProduct product){
 
         //Check if input is valid
@@ -273,16 +281,18 @@ public class ProductsController implements Initializable {
             product.setName(nameField.getText());
             product.setProductParts(productParts);
             product.setProductPrice();
-            product.setProductStock();
+            product.setStock(getProductStock());
 
+            //Update Product in database
             ProductDatabase.updateProduct(product);
             productsTable.setItems(ProductDatabase.getAllProducts());
 
+            //Reset Product form
             resetForm();
-
         }
     }
 
+    /** Populate Product form for update */
     private void populateProductFormForUpdate(){
 
         //Get the selected product
@@ -311,6 +321,7 @@ public class ProductsController implements Initializable {
 
     /** Handle add Part */
     private void addPart(){
+        //Get the selected Part from the table
         InventoryPart part = partsTableView.getSelectionModel().getSelectedItem();
 
         //Check if part is null
@@ -328,11 +339,19 @@ public class ProductsController implements Initializable {
             }
             //Update the stock and price fields
             setPriceAndStockFields();
+
+        //Display an alert if no selection is made
+        } else {
+            infoAlert.setTitle("Add Part");
+            infoAlert.setHeaderText("No Selection Made");
+            infoAlert.setContentText("Please select a Part");
+            infoAlert.showAndWait();
         }
     }
 
     /** Handle remove Part */
     private void removePart(){
+        //Get the selected part from the table
         ProductPart part = productPartsTableView.getSelectionModel().getSelectedItem();
 
         //Check if the part is null
@@ -353,9 +372,12 @@ public class ProductsController implements Initializable {
             }
 
             setPriceAndStockFields();
-        //Display alert
+        //Display an alert if no selection is made
         } else {
-            displayNoSelectionAlert("Part", "Remove");
+            infoAlert.setTitle("Remove Part");
+            infoAlert.setHeaderText("No Selection Made");
+            infoAlert.setContentText("Please select a Part");
+            infoAlert.showAndWait();
         }
     }
 
@@ -368,24 +390,30 @@ public class ProductsController implements Initializable {
         setPriceAndStockFields();
     }
 
+    /** Populate price and stock form fields */
     private void setPriceAndStockFields(){
+
+
 
         //Set the price and stock fields
         if (productParts.size() > 0) {
 
+            //Initialize Product price to 0
             double price = 0;
 
+            //Get the sum of product parts price * quantity
             for (ProductPart productPart : productParts){
                 price += productPart.getPrice() * productPart.getQuantity();
             }
 
-            priceField.setText(currencyFormat.format(price * 1.32));
+            //Multiply sum by manufacturing fee and set fields
+            priceField.setText(currencyFormat.format(price * MANUFACTURING_FEE));
             stockField.setText(Integer.toString(getProductStock()));
         } else {
+            //If the product has no parts, reset fields
             priceField.setText("Auto-Generated");
             stockField.setText("Auto-Generated");
         }
-
     }
 
     /**
@@ -394,13 +422,18 @@ public class ProductsController implements Initializable {
      */
     private boolean userConfirmedRemoveProduct(){
 
+        //Create atomic boolean result
         AtomicBoolean deleteConfirmed = new AtomicBoolean();
 
+        //Set alert content
         confirmationAlert.setTitle("Remove Product");
         confirmationAlert.setHeaderText("Remove Product");
         confirmationAlert.setContentText("Are you sure you want to remove this product?");
+
+        //Retrieve alert response
         confirmationAlert.showAndWait().ifPresent(response -> deleteConfirmed.set(response.equals(ButtonType.OK)));
 
+        //Return response
         return deleteConfirmed.get();
     }
 
@@ -409,25 +442,26 @@ public class ProductsController implements Initializable {
      * @param product the product that was selected
      */
     private void displayAssociatedOrdersAlert(Product product){
+
+        //Create alert content
         StringBuilder builder = new StringBuilder();
         builder.append("This Product has the following pending Orders associated with it:\n\n");
-
-        for (Order order: OrderDatabase.getPendingProductOrders(product.getId())){
+        for (Order order: OrderDatabase.getProductOrders(product.getId())){
             builder.append("Order ID: ");
             builder.append(order.getOrderID());
             builder.append("\n");
             builder.append("Order Due Date: ");
-            builder.append(order.getDueDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
+            builder.append(order.getDueDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             builder.append("\n\n");
         }
-
         builder.append("Please cancel these Orders before deleting this Product.");
 
-        informationAlert.setTitle("Delete Product");
-        informationAlert.setHeaderText("Product Has Pending Orders");
-        informationAlert.setContentText(builder.toString());
-        informationAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        informationAlert.showAndWait();
+        //Set alert content and show alert
+        infoAlert.setTitle("Delete Product");
+        infoAlert.setHeaderText("Product Has Pending Orders");
+        infoAlert.setContentText(builder.toString());
+        infoAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        infoAlert.showAndWait();
     }
 
     /**
@@ -436,10 +470,11 @@ public class ProductsController implements Initializable {
      * @param actionType the type of action being performed ('Remove', 'Delete', 'Update')
      */
     private void displayNoSelectionAlert(String selectionType, String actionType){
-        informationAlert.setTitle(actionType + " " + selectionType);
-        informationAlert.setHeaderText("No " + selectionType + " Selection Made");
-        informationAlert.setContentText("Please select a " + selectionType + " to " + actionType);
-        informationAlert.showAndWait();
+        //Set alert content and show alert
+        infoAlert.setTitle(actionType + " " + selectionType);
+        infoAlert.setHeaderText("No " + selectionType + " Selection Made");
+        infoAlert.setContentText("Please select a " + selectionType + " to " + actionType);
+        infoAlert.showAndWait();
     }
 
     /**
@@ -472,13 +507,17 @@ public class ProductsController implements Initializable {
                 stock = partStock;
             }
         }
+
+        //Return the product stock
         return stock;
     }
 
+    /** Search PRoducts and display result in the table */
     private void searchProducts(){
         productsTable.setItems(ProductDatabase.searchInventoryProducts(productSearchField.getText().trim()));
     }
 
+    /** Search Parts and display result in the table */
     private void searchParts(){
         partsTableView.setItems(PartDatabase.searchInventoryParts(partSearchField.getText().trim()));
     }

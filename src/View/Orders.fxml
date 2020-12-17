@@ -39,7 +39,6 @@
                     </columns>
                 </TableView>
                 <HBox>
-                    <Label text="Search: "/>
                     <TextField fx:id="productSearchField" promptText="Search by ID or Name"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Button fx:id="addProductButton" text="Add Product"/>
@@ -76,6 +75,7 @@
         </HBox>
     </VBox>
     <TableView fx:id="ordersTable" VBox.vgrow="ALWAYS">
+        <placeholder><Label text="No Orders to display"/></placeholder>
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
         </columnResizePolicy>
@@ -90,9 +90,8 @@
         </columns>
     </TableView>
     <HBox spacing="10">
-        <Label text="Search :" />
         <TextField fx:id="orderSearchField" promptText="Search by ID, Name, Date or Product" prefWidth="210"/>
-        <Label fx:id="errorLabel" visible="false"/>
+        <Label fx:id="errorLabel" visible="false" styleClass="errorLabel"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="modifyButton" text="Modify"/>
         <Button fx:id="deleteButton" text="Cancel Order"/>

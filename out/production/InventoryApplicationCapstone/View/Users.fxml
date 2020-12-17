@@ -49,6 +49,7 @@
     </TableView>
     <HBox spacing="10">
         <padding><Insets top="10"/></padding>
+        <TextField fx:id="searchField" promptText="Search Any Field"/>
         <Label fx:id="errorLabel" visible="false" styleClass="errorLabel"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="modifyButton" text="Modify Privileges"/>

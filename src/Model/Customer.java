@@ -98,34 +98,66 @@ public class Customer {
         this.customerID = customerID;
     }
 
+    /**
+     * Get city
+     * @return the city
+     */
     public String getCity() {
         return city;
     }
 
+    /**
+     * Set city
+     * @param city the city to set
+     */
     public void setCity(String city) {
         this.city = city;
     }
 
+    /**
+     * Get country
+     * @return the country
+     */
     public String getCountry() {
         return country;
     }
 
+    /**
+     * Set country
+     * @param country the country to set
+     */
     public void setCountry(String country) {
         this.country = country;
     }
 
+    /**
+     * Get division
+     * @return the division
+     */
     public String getDivision() {
         return division;
     }
 
+    /**
+     * Set division
+     * @param division the division to set
+     */
     public void setDivision(String division) {
         this.division = division;
     }
 
+    /**
+     * Get postal code
+     * @return the postal code
+     */
     public String getPostalCode() {
         return postalCode;
     }
 
+    /**
+     * Set postal code
+     * @param postalCode the postal code to set
+     */
     public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
     }

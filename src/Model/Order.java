@@ -4,7 +4,7 @@ import javafx.collections.ObservableList;
 
 import java.time.LocalDate;
 
-/** Clas for creating and managing orders */
+/** Class for creating and managing orders */
 public class Order {
 
     private int orderID;
@@ -15,6 +15,7 @@ public class Order {
     private String associatedProductsString;
     private LocalDate createdDate;
     private LocalDate dueDate;
+    private Customer customer;
 
     /**
      * Create a new order object
@@ -26,6 +27,7 @@ public class Order {
      */
     public Order(int orderID, Customer customer, ObservableList<OrderProduct> associatedProducts, LocalDate createdDate, LocalDate dueDate){
         this.orderID = orderID;
+        this.customer = customer;
         this.customerName = customer.getName();
         this.customerID = customer.getCustomerID();
         this.associatedProducts = associatedProducts;
@@ -35,12 +37,18 @@ public class Order {
         setAssociatedProductsString();
     }
 
+    /**
+     * Get associated parts string
+     * @return the associated parts string
+     */
     public String getAssociatedProductsString() {
         return associatedProductsString;
     }
 
+    /** Set the associated parts string */
     public void setAssociatedProductsString() {
 
+        //Create associated parts string
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < associatedProducts.size(); i++){
             builder.append(associatedProducts.get(i).getName());
@@ -51,6 +59,7 @@ public class Order {
             }
         }
 
+        //Set associated parts string
         this.associatedProductsString = builder.toString();
     }
 
@@ -70,28 +79,40 @@ public class Order {
         this.orderID = orderID;
     }
 
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    /**
+     * Get customer id
+     * @return the customer id
+     */
     public int getCustomerID() {
         return customerID;
     }
 
-    public void setCustomerID(int customerID) {
-        this.customerID = customerID;
-    }
-
+    /**
+     * Get customer name
+     * @return the customer name
+     */
     public String getCustomerName() {
         return customerName;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    /**
+     * Set the Customer
+     * @param customer the customer to set
+     */
+    public void setCustomer(Customer customer){
+        this.customer = customer;
     }
 
+    /**
+     * Get the order cost
+     * @return the order cost
+     */
     public double getOrderCost() {
         return orderCost;
-    }
-
-    public void setOrderCost(double orderCost) {
-        this.orderCost = orderCost;
     }
 
     /**
@@ -109,12 +130,8 @@ public class Order {
      */
     public void setAssociatedProducts(ObservableList<OrderProduct> associatedProducts) {
         this.associatedProducts = associatedProducts;
-        StringBuilder builder = new StringBuilder();
-        for (Product product : associatedProducts){
-            builder.append(product.getName());
-            builder.append("\n");
-        }
-        this.associatedProductsString = builder.toString();
+        calculateOrderCost();
+        setAssociatedProductsString();
     }
 
     /**
@@ -133,14 +150,23 @@ public class Order {
         this.createdDate = createdDate;
     }
 
+    /**
+     * Get the due date
+     * @return the due date
+     */
     public LocalDate getDueDate() {
         return dueDate;
     }
 
+    /**
+     * Set the due date
+     * @param dueDate the due date to set
+     */
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 
+    /** Calculate the order cost */
     private void calculateOrderCost(){
 
         //Initialize cost

@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/** Class that handles the Order form GUI functionality */
 public class OrdersController implements Initializable {
     @FXML
     public TextField idField;
@@ -85,23 +86,28 @@ public class OrdersController implements Initializable {
     @FXML
     public TextField productSearchField;
 
-    //Products within the order
-    ObservableList<OrderProduct> orderProducts = FXCollections.observableArrayList();
+    //Products associated with the order
+    private ObservableList<OrderProduct> orderProducts = FXCollections.observableArrayList();
 
-    //List of all products
-    ObservableList<InventoryProduct> inventoryProducts = FXCollections.observableArrayList();
+    //List of all products in the inventory
+    private ObservableList<InventoryProduct> inventoryProducts = FXCollections.observableArrayList();
 
-    TableRow<InventoryProduct> selectedRow = new TableRow<>();
+    //Create confirmation alert
+    private final Alert orderFulfilledConfirmation = new Alert(Alert.AlertType.CONFIRMATION, "Was this order fulfilled?", ButtonType.YES, ButtonType.NO);
 
-    Alert orderFulfilledConfirmation = new Alert(Alert.AlertType.CONFIRMATION, "Was this order fulfilled?", ButtonType.YES, ButtonType.NO);
+    //Crete information alert
+    private final Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellFactories();
-        setButtonEventListeners();
+        setEventListeners();
+
+        //Populate tables after scene loads
         Platform.runLater(() -> new Thread(this::populateTables).start());
     }
 
+    /** Populate tables and combo boxes */
     private void populateTables(){
         ordersTable.setItems(OrderDatabase.getAllOrders());
         inventoryProducts = ProductDatabase.getAllProducts();
@@ -109,7 +115,8 @@ public class OrdersController implements Initializable {
         customerComboBox.setItems(CustomerDatabase.getAllCustomers());
     }
 
-    private void setButtonEventListeners(){
+    /** Set event listeners */
+    private void setEventListeners(){
 
         //Add list change listeners to order and inventory product lists
         orderProducts.addListener((ListChangeListener<Product>) change -> orderProductsTableView.setItems(orderProducts));
@@ -133,6 +140,8 @@ public class OrdersController implements Initializable {
             }
         });
 
+        modifyButton.setOnAction(e -> populateFormForUpdate());
+
         //Search orders
         orderSearchField.setOnKeyPressed(e -> {if (e.getCode().equals(KeyCode.ENTER)){searchOrders();}});
 
@@ -141,13 +150,8 @@ public class OrdersController implements Initializable {
 
     }
 
+    /** Add Product to Order */
     private void addProduct(){
-
-        /****************************************************************
-        Stock not adjusting when out of stock for other available products
-        If a product is order and another product contains the same parts the stock of that product should be reduced
-        The stock updates after the page is reloaded
-         ****************************************************************/
 
         //Get the selected inventory product
         InventoryProduct product = productsTableView.getSelectionModel().getSelectedItem();
@@ -159,7 +163,11 @@ public class OrdersController implements Initializable {
             if (orderProducts.stream().anyMatch(o -> o.getId() == product.getId())){
 
                 //If a product is found, increment the quantity
-                orderProducts.stream().filter(orderProduct -> orderProduct.getId() == product.getId()).collect(Collectors.toList()).get(0).incrementQuantity();
+                for (OrderProduct orderProduct : orderProducts){
+                    if (orderProduct.getId() == product.getId()){
+                        orderProduct.incrementQuantity();
+                    }
+                }
             } else {
 
                 //If a product is not found, add the product
@@ -168,10 +176,21 @@ public class OrdersController implements Initializable {
 
             //Update inventory product stock
             inventoryProducts.stream().filter(inventoryProduct -> inventoryProduct.getId() == product.getId()).forEach(InventoryProduct::decrementStock);
+            productsTableView.setItems(inventoryProducts);
+
+        //Display an alert if no selection is made
+        } else {
+            infoAlert.setTitle("Add Product");
+            infoAlert.setHeaderText("No Selection Made");
+            infoAlert.setContentText("Please select a Product");
+            infoAlert.showAndWait();
         }
     }
 
+    /** Remove Product from Order */
     private void removeProduct(){
+
+        //Get the selected product
         OrderProduct product = orderProductsTableView.getSelectionModel().getSelectedItem();
 
         //Check if the product is null
@@ -192,9 +211,16 @@ public class OrdersController implements Initializable {
             inventoryProducts.stream().filter(
                     inventoryProduct -> inventoryProduct.getId() == product.getId())
                     .forEach(InventoryProduct::incrementStock);
+        //Display an alert if no selection is made
+        } else {
+            infoAlert.setTitle("Remove Product");
+            infoAlert.setHeaderText("No Selection Made");
+            infoAlert.setContentText("Please select a Product");
+            infoAlert.showAndWait();
         }
     }
 
+    /** Create new Order */
     private void createOrder(){
 
         //Validate Input
@@ -219,6 +245,64 @@ public class OrdersController implements Initializable {
             //Clear the Order form
             clearForm();
         }
+    }
+
+    private void populateFormForUpdate(){
+
+        //Get selected order
+        Order order = ordersTable.getSelectionModel().getSelectedItem();
+
+        //Check if a selection was made
+        if (order != null){
+
+            //Set the fields
+            idField.setText(Integer.toString(order.getOrderID()));
+            customerComboBox.getSelectionModel().select(
+                    customerComboBox.getItems()
+                            .stream()
+                            .filter(customer -> customer.getCustomerID() == order.getCustomerID())
+                            .collect(Collectors.toList()).get(0));
+            dueDatePicker.setValue(order.getDueDate());
+            orderProducts = order.getAssociatedProducts();
+            orderProductsTableView.setItems(orderProducts);
+
+            //Set submit button text and event
+            submitButton.setText("Update Order");
+            submitButton.setOnAction(e -> updateOrder(order));
+        } else {
+            //Show alert
+            infoAlert.setTitle("Update Order");
+            infoAlert.setHeaderText("No Order Selection Made");
+            infoAlert.setContentText("Please select an Order to Update");
+            infoAlert.showAndWait();
+        }
+
+    }
+
+    private void updateOrder(Order order){
+
+        //Validate input
+        if (InputValidator.validateOrderForm(this)){
+
+            //Set new values
+            order.setCustomer(customerComboBox.getValue());
+            order.setDueDate(dueDatePicker.getValue());
+            order.setAssociatedProducts(orderProducts);
+
+            //Update order in database
+            OrderDatabase.updateOrder(order);
+
+            //Update table
+            ordersTable.setItems(OrderDatabase.getAllOrders());
+
+            //Clear form
+            clearForm();
+
+            //Reset submit button text and event
+            submitButton.setText("Create New Order");
+            submitButton.setOnAction(e -> createOrder());
+        }
+
     }
 
     /** Create cell factories */
@@ -393,6 +477,10 @@ public class OrdersController implements Initializable {
         orderProductsTableView.getItems().clear();
     }
 
+    /**
+     * Increase Parts stock
+     * @param orderProducts the products associated with the Part to modify
+     */
     private void increasePartStock(ObservableList<OrderProduct> orderProducts){
 
         //For each product in the order
@@ -401,10 +489,15 @@ public class OrdersController implements Initializable {
             for (ProductPart productPart : orderProduct.getProductParts()){
                 //Reduce increase stock by part quantity multiplied by product quantity
                 PartDatabase.increasePartStock(productPart.getId(), (productPart.getQuantity() * orderProduct.getQuantity()));
+
             }
         }
     }
 
+    /**
+     * Decrease Parts stock
+     * @param orderProducts the products associated with the Part to modify
+     */
     private void decreasePartStock(ObservableList<OrderProduct> orderProducts) {
 
         //For each product in the order
@@ -424,6 +517,7 @@ public class OrdersController implements Initializable {
      */
     private void showOrderFulfilledConfirmation(Order order){
 
+        //Set confirmation content
         orderFulfilledConfirmation.setTitle("Order Fulfilled Confirmation");
         orderFulfilledConfirmation.setHeaderText("Order Fulfilled Confirmation");
         orderFulfilledConfirmation.setContentText("Was this order fulfilled?");
@@ -442,6 +536,7 @@ public class OrdersController implements Initializable {
 
                 //Update Products table
                 productsTableView.setItems(ProductDatabase.getAllProducts());
+                inventoryProducts = ProductDatabase.getAllProducts();
 
                 //Remove Order from database
                 OrderDatabase.removeOrder(order.getOrderID());
@@ -452,12 +547,21 @@ public class OrdersController implements Initializable {
         });
     }
 
+    /** Search Orders and set results to Order Table */
     private void searchOrders(){
         ordersTable.setItems(OrderDatabase.searchOrders(orderSearchField.getText().trim()));
     }
 
+    /** Search Products and set results to Products Table */
     private void searchProducts(){
-        productsTableView.setItems(ProductDatabase.searchInventoryProducts(productSearchField.getText().trim()));
+
+        //Get search criteria
+        String searchCriteria = productSearchField.getText();
+
+        //Set products table items to result
+        productsTableView.setItems(inventoryProducts.stream()
+                .filter(inventoryProduct -> Integer.toString(inventoryProduct.getId()).contains(searchCriteria) || inventoryProduct.getName().contains(searchCriteria))
+                .collect(Collectors.toCollection(FXCollections::observableArrayList)));
     }
 
 }

@@ -11,6 +11,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
 
+/** Class that handles Change Password Dialog functionality */
 public class ChangePasswordDialogController implements Initializable {
     @FXML
     public PasswordField currentPasswordField;
@@ -25,7 +26,8 @@ public class ChangePasswordDialogController implements Initializable {
     @FXML
     public Label errorLabel;
 
-    Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+    //Create information alert
+    private final Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -49,12 +51,11 @@ public class ChangePasswordDialogController implements Initializable {
         if (InputValidator.validateChangePasswordForm(this)){
 
             //Update the current User
-            MainBorderPaneController.currentUser.setPassword(newPasswordField.getText());
             MainBorderPaneController.currentUser.setModifiedDate(LocalDate.now());
             MainBorderPaneController.currentUser.setModifiedBy(MainBorderPaneController.currentUser.getUsername());
 
             //Update the Users password in the database
-            UserDatabase.updateUserPassword(MainBorderPaneController.currentUser);
+            UserDatabase.updateUserPassword(MainBorderPaneController.currentUser, newPasswordField.getText());
 
             //Display a confirmation that the password was changed successfully
             infoAlert.setTitle("Password Change Successful");

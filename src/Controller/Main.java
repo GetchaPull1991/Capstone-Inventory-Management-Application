@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 
-
+/** The main that launches the application */
 public class Main extends Application {
 
     public static URL stylesheetUrl;
@@ -33,15 +33,8 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-
-
     public static void main(String[] args) {
         launch(args);
     }
 
-
 }
-
-/*
-Create "About" dialog with link to https://icons8.com/ for use of icons
- */

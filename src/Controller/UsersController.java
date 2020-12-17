@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 
 import java.net.URL;
@@ -50,7 +51,10 @@ public class UsersController implements Initializable {
     public Button deleteButton;
     @FXML
     public Button submitButton;
+    @FXML
+    public TextField searchField;
 
+    //Create confirmation alert
     Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
 
     @Override
@@ -84,10 +88,13 @@ public class UsersController implements Initializable {
         submitButton.setOnAction(e -> addNewUser());
 
         //Set the "Modify Privileges" button event
-        modifyButton.setOnAction(e -> populateFormForModification());
+        modifyButton.setOnAction(e -> populateFormForUpdate());
 
         //Set the "Delete" button event
         deleteButton.setOnAction(e -> deleteUser());
+
+        //Search users
+        searchField.setOnKeyPressed(keyEvent -> {if (keyEvent.getCode().equals(KeyCode.ENTER)){searchUsers();}});
     }
 
     /** Add a new User to the database */
@@ -106,12 +113,11 @@ public class UsersController implements Initializable {
             //Add new User to the database
             UserDatabase.addNewUser(new User(id,
                                             usernameField.getText().trim(),
-                                            passwordField.getText(),
                                             privilegesComboBox.getValue(),
                                             LocalDate.now(),
                                             MainBorderPaneController.currentUser.getUsername(),
                                             LocalDate.now(),
-                                            MainBorderPaneController.currentUser.getUsername()));
+                                            MainBorderPaneController.currentUser.getUsername()), passwordField.getText());
 
             //Update the Users table
             usersTable.setItems(UserDatabase.getAllUsers());
@@ -122,7 +128,7 @@ public class UsersController implements Initializable {
     }
 
     /** Populate the User form to modify User privileges */
-    private void populateFormForModification(){
+    private void populateFormForUpdate(){
 
         //Get the selected user
         User user = usersTable.getSelectionModel().getSelectedItem();
@@ -207,9 +213,17 @@ public class UsersController implements Initializable {
     /** Clear the Users form on Submit*/
     private void clearForm(){
         usernameField.clear();
+        usernameField.setDisable(false);
         passwordField.clear();
+        passwordField.setDisable(false);
         confirmPasswordField.clear();
+        confirmPasswordField.setDisable(false);
         privilegesComboBox.getSelectionModel().clearSelection();
         errorLabel.setVisible(false);
+    }
+
+    /** Search users and display the result in the table*/
+    private void searchUsers(){
+        usersTable.setItems(UserDatabase.searchUsers(searchField.getText().trim()));
     }
 }

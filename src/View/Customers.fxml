@@ -73,9 +73,8 @@
         </columns>
     </TableView>
     <HBox spacing="10">
-        <Label text="Search: "/>
-        <TextField fx:id="searchField" promptText="Search..."/>
-        <Label fx:id="errorLabel" visible="false"/>
+        <TextField fx:id="searchField" promptText="Search Any Field"/>
+        <Label fx:id="errorLabel" visible="false" styleClass="errorLabel"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="modifyButton" text="Modify"/>
         <Button fx:id="deleteButton" text="Delete"/>

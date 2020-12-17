@@ -17,7 +17,6 @@ public class UserDatabase extends Database {
 
     /**
      * Return the User from the database if present
-     *
      * @param username the username of the User
      * @param password the password of the User
      * @return the User
@@ -39,7 +38,6 @@ public class UserDatabase extends Database {
             while (userResultSet.next()) {
                 user = new User(userResultSet.getInt("user_Id"),
                         userResultSet.getString("username"),
-                        userResultSet.getString("password"),
                         userResultSet.getString("privileges"),
                         userResultSet.getDate("created_date").toLocalDate(),
                         userResultSet.getString("created_by"),
@@ -78,7 +76,6 @@ public class UserDatabase extends Database {
             while (userResultSet.next()) {
                 users.add(new User(userResultSet.getInt("user_Id"),
                         userResultSet.getString("username"),
-                        userResultSet.getString("password"),
                         userResultSet.getString("privileges"),
                         userResultSet.getDate("created_date").toLocalDate(),
                         userResultSet.getString("created_by"),
@@ -92,6 +89,9 @@ public class UserDatabase extends Database {
 
         //Disconnect from database
         disconnect();
+
+        //Remove the current User of the application from the list
+        users.removeIf(user -> user.getUserId().equals(MainBorderPaneController.currentUser.getUserId()));
 
         //Return list of users
         return users;
@@ -129,7 +129,6 @@ public class UserDatabase extends Database {
             while (userResultSet.next()) {
                 users.add(new User(userResultSet.getInt("user_Id"),
                         userResultSet.getString("username"),
-                        userResultSet.getString("password"),
                         userResultSet.getString("privileges"),
                         userResultSet.getDate("created_date").toLocalDate(),
                         userResultSet.getString("created_by"),
@@ -170,7 +169,6 @@ public class UserDatabase extends Database {
             while (userResultSet.next()) {
                 user = new User(userResultSet.getInt("user_Id"),
                         userResultSet.getString("username"),
-                        userResultSet.getString("password"),
                         userResultSet.getString("privileges"),
                         userResultSet.getDate("created_date").toLocalDate(),
                         userResultSet.getString("created_by"),
@@ -202,7 +200,7 @@ public class UserDatabase extends Database {
         //Store boolean result
         boolean usernameIsInUse = false;
 
-        //Retrive the user
+        //Retrieve the user
         try (Statement statement = connection.createStatement()) {
             String userQuery = "SELECT * FROM users WHERE username = '" + username + "';";
             ResultSet userResultSet = statement.executeQuery(userQuery);
@@ -226,7 +224,7 @@ public class UserDatabase extends Database {
      * Add new user to the database
      * @param user the user to add
      */
-    public static void addNewUser(User user){
+    public static void addNewUser(User user, String password){
 
         //Connect to the database
         connect();
@@ -237,7 +235,7 @@ public class UserDatabase extends Database {
                                  "VALUES('" +
                                  user.getUserId() + "', '" +
                                  user.getUsername() + "', '" +
-                                 user.getPassword() + "', '" +
+                                 password + "', '" +
                                  user.getCreatedDate() + "', '" +
                                  user.getCreatedBy() + "', '" +
                                  user.getModifiedDate() +"', '" +
@@ -278,14 +276,14 @@ public class UserDatabase extends Database {
      * Update the users password
      * @param user the user to update
      */
-    public static void updateUserPassword(User user){
+    public static void updateUserPassword(User user, String password){
 
-        //Connect to the datbase
+        //Connect to the database
         connect();
 
         //Update the users password
         try (Statement statement = connection.createStatement()){
-            String updateQuery = "UPDATE users SET password = '" + user.getPassword() +
+            String updateQuery = "UPDATE users SET password = '" + password +
                                  "', last_modified_by = '" + user.getUsername() +
                                  "', last_modified_date = '" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
                                  "' WHERE user_id = '" + user.getUserId() + "';";

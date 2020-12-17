@@ -1,8 +1,8 @@
 package Database;
 
+import Controller.MainBorderPaneController;
 import Model.Order;
 import Model.OrderProduct;
-import Model.Product;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -116,7 +116,7 @@ public class OrderDatabase extends Database {
                                             "orders(order_id, customer_id, order_cost," +
                                             "created_date, created_by, modified_date, modified_by, due_date) " +
                                         "VALUES" +
-                                            "('" + order.getOrderID() +  "' , '" + order.getCustomerID() +
+                                            "('" + order.getOrderID() +  "' , '" + order.getCustomer().getCustomerID() +
                                             "' , '" + order.getOrderCost() +
                                             "' , '" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
                                             "' , 'admin' , '" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
@@ -179,9 +179,10 @@ public class OrderDatabase extends Database {
             statement.executeUpdate(deleteQuery);
 
             //Update associated products in order parts table
-            for (Product product : order.getAssociatedProducts()){
+            for (OrderProduct product : order.getAssociatedProducts()){
                 try (Statement statement1 = connection.createStatement()){
-                    String associatedProductsQuery = "INSERT INTO order_products(order_id, product_id) VALUES('" + order.getOrderID() + "', '" + product.getId() + "')";
+                    String associatedProductsQuery = "INSERT INTO order_products(order_id, product_id, quantity) " +
+                                                     "VALUES('" + order.getOrderID() + "', '" + product.getId() + "', '" + product.getQuantity() + "')";
                     statement1.executeUpdate(associatedProductsQuery);
                 }
             }
@@ -191,10 +192,10 @@ public class OrderDatabase extends Database {
 
         //Update order
         try (Statement statement = connection.createStatement()){
-            String updateQuery = "UPDATE orders SET customer_id = '" + order.getCustomerID() +
+            String updateQuery = "UPDATE orders SET customer_id = '" + order.getCustomer().getCustomerID() +
                     "', order_cost = '" + order.getOrderCost() + "', modified_date = '" +
                     LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
-                    "' , modified_by = 'admin', due_date = '" +
+                    "' , modified_by = '" + MainBorderPaneController.currentUser.getUsername() + "', due_date = '" +
                     order.getDueDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';";
             statement.executeUpdate(updateQuery);
 
@@ -207,26 +208,25 @@ public class OrderDatabase extends Database {
     }
 
     /**
-     * Get pending Product Orders
+     * Get Product Orders
      * @param productId the product id associated with the Order
      * @return the list of Orders associated with the Product
      */
-    public static ObservableList<Order> getPendingProductOrders(int productId){
+    public static ObservableList<Order> getProductOrders(int productId){
 
         //Connect to the database
         connect();
 
         //Create list of Orders
-        ObservableList<Order> pendingOrders = FXCollections.observableArrayList();
+        ObservableList<Order> productOrders = FXCollections.observableArrayList();
 
         //Get Orders from database
         try (Statement statement = connection.createStatement()){
-            String orderQuery = "SELECT DISTINCT " +
-                                "o.order_id, o.customer_id, o.order_cost, o.created_date, o.due_date " +
+            String orderQuery = "SELECT o.order_id, o.customer_id, o.order_cost, o.created_date, o.due_date " +
                                 "FROM orders o " +
                                 "JOIN order_products op " +
                                 "ON o.order_id = op.order_id " +
-                                "WHERE op.product_id = '" + productId + "' AND due_date >= CURDATE();";
+                                "WHERE op.product_id = '" + productId + "';";
             ResultSet orderResultSet = statement.executeQuery(orderQuery);
 
 
@@ -237,7 +237,7 @@ public class OrderDatabase extends Database {
                 ObservableList<OrderProduct> products = ProductDatabase.getOrderProducts(orderResultSet.getInt("order_id"));
 
                 //Add Order to list
-                pendingOrders.add(new Order(orderResultSet.getInt("order_id"),
+                productOrders.add(new Order(orderResultSet.getInt("order_id"),
                         CustomerDatabase.getCustomerById(orderResultSet.getInt("customer_id")),
                         products,
                         orderResultSet.getDate("created_date").toLocalDate(),
@@ -251,16 +251,69 @@ public class OrderDatabase extends Database {
         disconnect();
 
         //Return Pending Orders
-        return pendingOrders;
+        return productOrders;
     }
 
-    public static ObservableList<Order> searchOrders(String searchCriteria){
+    /**
+     * Get Part Orders
+     * @param partId the part id associated with the Order
+     * @return the list of Orders associated with the Part
+     */
+    public static ObservableList<Order> getPartOrders(int partId){
 
+        //Connect to the database
         connect();
 
+        //Create list of Orders
+        ObservableList<Order> partOrders = FXCollections.observableArrayList();
+
+        //Get Orders from database
+        try (Statement statement = connection.createStatement()){
+            String orderQuery = "SELECT o.order_id, o.customer_id, o.order_cost, o.created_date, o.due_date " +
+                                "FROM orders o JOIN order_products op ON o.order_id = op.order_id " +
+                                "JOIN product_parts pp ON pp.product_id = op.product_id " +
+                                "WHERE pp.part_id = '" + partId + "';";
+            ResultSet orderResultSet = statement.executeQuery(orderQuery);
+
+
+            //Get Order products from database
+            while (orderResultSet.next()){
+
+                //Create list of products
+                ObservableList<OrderProduct> products = ProductDatabase.getOrderProducts(orderResultSet.getInt("order_id"));
+
+                //Add Order to list
+                partOrders.add(new Order(orderResultSet.getInt("order_id"),
+                        CustomerDatabase.getCustomerById(orderResultSet.getInt("customer_id")),
+                        products,
+                        orderResultSet.getDate("created_date").toLocalDate(),
+                        orderResultSet.getDate("due_date").toLocalDate()));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        //Disconnect from database
+        disconnect();
+
+        //Return Part order
+        return partOrders;
+    }
+
+    /**
+     * Search Orders
+     * @param searchCriteria the criteria to search with
+     * @return the list of Orders that match the criteria
+     */
+    public static ObservableList<Order> searchOrders(String searchCriteria){
+
+        //Connect to the database
+        connect();
+
+        //Create list of Orders
         ObservableList<Order> orders = FXCollections.observableArrayList();
 
-        //Only returns results for date if typed in yyyy-mm-dd format
+        //Retrieve Orders
         try(Statement statement = connection.createStatement()){
             String searchQuery = "SELECT o.order_id, o.customer_id, o.order_cost, " +
                                  "o.created_date, o.due_date, p.name, c.name " +
@@ -273,9 +326,9 @@ public class OrderDatabase extends Database {
                                  "o.created_date LIKE CONCAT('%', DATE_FORMAT('" + searchCriteria + "', '%Y-%m-%d'), '%') OR " +
                                  "o.due_date LIKE CONCAT('%', DATE_FORMAT('" + searchCriteria + "', '%Y-%m-%d'), '%') OR " +
                                  "p.name LIKE '%" + searchCriteria + "%';";
-
             ResultSet orderSearchResultSet = statement.executeQuery(searchQuery);
 
+            //Add Orders to the list
             while (orderSearchResultSet.next()){
                 orders.add(new Order(orderSearchResultSet.getInt("order_id"),
                         CustomerDatabase.getCustomerById(orderSearchResultSet.getInt("customer_id")),
@@ -287,7 +340,10 @@ public class OrderDatabase extends Database {
             throwables.printStackTrace();
         }
 
+        //Disconnect from the database
         disconnect();
+
+        //Return the Orders list
         return orders;
     }
 }

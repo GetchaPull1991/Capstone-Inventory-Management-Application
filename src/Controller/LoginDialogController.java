@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+/** Class that handles Login Dialog GUI functionality */
 public class LoginDialogController implements Initializable {
     @FXML
     public TextField usernameField;

@@ -8,7 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.text.Text;
+import javafx.scene.input.KeyCode;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -16,7 +16,7 @@ import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Controller Class to handle GUI functionality for Parts */
+/** Class that handles Part form GUI functionality */
 public class PartsController implements Initializable {
 
     @FXML
@@ -48,23 +48,19 @@ public class PartsController implements Initializable {
     @FXML
     public TextField partSearchField;
 
-    //Displays as placeholder in parts table while database information is retrieved
-    ProgressIndicator indicator = new ProgressIndicator();
 
     //Alert dialogs
-    Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
-    Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
+    private final Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+    private final Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellFactories();
         setButtonEventHandlers();
-        partsTable.setPlaceholder(indicator);
-        Platform.runLater(() -> {
-            partsTable.setItems(PartDatabase.getAllParts());
-            partsTable.setPlaceholder(new Text("No Parts To Display"));
-        });
+
+        //Set parts table items after scene loads
+        Platform.runLater(() -> partsTable.setItems(PartDatabase.getAllParts()));
     }
 
     /** Set the Parts table cell factories */
@@ -102,7 +98,7 @@ public class PartsController implements Initializable {
         modifyButton.setOnAction(e -> populateUpdatePart());
 
         //Set event for key pressed on part search field
-        partSearchField.setOnKeyPressed(keyEvent -> searchParts());
+        partSearchField.setOnKeyPressed(keyEvent -> {if (keyEvent.getCode().equals(KeyCode.ENTER)){searchParts();}});
     }
 
     /** Populate the part form for updating parts */
@@ -173,7 +169,7 @@ public class PartsController implements Initializable {
                     partsTable.setItems(PartDatabase.getAllParts());
                 } else {
                     //Display alert
-                    displayAssociatedPartsAlert(part);
+                    displayAssociatedProductsAlert(part);
                 }
             }
         } else {
@@ -182,7 +178,10 @@ public class PartsController implements Initializable {
         }
     }
 
-    /** Handle updating a part */
+    /**
+     * Update Part
+     * @param part the Part to update
+     */
     private void updatePart(InventoryPart part){
         if (InputValidator.validatePartForm(this)){
 
@@ -214,7 +213,8 @@ public class PartsController implements Initializable {
 
                 //Update the product price if the part price changed
                 if (part.getPrice() != originalPartPrice) {
-                    product.setPrice((product.getPrice() / MANUFACTURING_FEE) - originalPartPrice + part.getPrice() * MANUFACTURING_FEE);
+                    //product.setPrice((product.getPrice() / MANUFACTURING_FEE) - originalPartPrice + part.getPrice() * MANUFACTURING_FEE);
+                    product.setProductPrice();
                 }
 
                 //Set the new value of the associated parts string
@@ -235,16 +235,15 @@ public class PartsController implements Initializable {
 
     }
 
-    /** Display an alert when the part to be deleted has associated products */
-    private void displayAssociatedPartsAlert(Part part){
+    /**
+     * Display an alert if Part is associated with a Product
+     * @param part the associated Part
+     */
+    private void displayAssociatedProductsAlert(Part part){
+
+        //Create alert message
         StringBuilder builder = new StringBuilder();
         builder.append("This Part has the following Products associated with it:\n\n");
-
-        /*
-        BUG : Displays the same product multiple times in dialog when
-        the product has more than one of the same part associated with it
-         */
-
         for (Product product: ProductDatabase.getPartProducts(part.getId())){
             builder.append("Product ID: ");
             builder.append(product.getId());
@@ -253,9 +252,9 @@ public class PartsController implements Initializable {
             builder.append(product.getName());
             builder.append("\n\n");
         }
-
         builder.append("Please delete these Products before deleting this Part.");
 
+        //Set alert content and show alert
         informationAlert.setTitle("Delete Part");
         informationAlert.setHeaderText("Part Has Associated Products");
         informationAlert.setContentText(builder.toString());
@@ -264,21 +263,32 @@ public class PartsController implements Initializable {
 
     /** Display an alert when no selection is made when updating or deleting a part */
     private void displayNoSelectionAlert(){
+
+        //Set alert content and show alert
         informationAlert.setTitle("No Selection");
         informationAlert.setHeaderText("No Part Selected");
         informationAlert.setContentText("Please select a part");
         informationAlert.showAndWait();
     }
 
-    /** Display an alert to confirm the user wants to delete the selected part */
+    /**
+     * Display alert to confirm user wants to delete selected Part
+     * @return the response of the confirmation
+     */
     private boolean displayConfirmDelete(){
+
+        //Create atomic boolean result
         AtomicBoolean deleteConfirmed = new AtomicBoolean(false);
 
+        //Set alert content
         confirmationAlert.setTitle("Delete Part");
         confirmationAlert.setHeaderText("Delete Part");
         confirmationAlert.setContentText("Are you sure you want to delete this part?");
+
+        //Show alert and retrieve user response
         confirmationAlert.showAndWait().ifPresent(response -> deleteConfirmed.set(response.equals(ButtonType.OK)));
 
+        //Return response
         return deleteConfirmed.get();
     }
 
@@ -289,7 +299,7 @@ public class PartsController implements Initializable {
         stockField.clear();
     }
 
-    /** Search the parts database with the provided criteria and update the table */
+    /** Search Parts and display result in Table */
     private void searchParts(){
         partsTable.setItems(PartDatabase.searchInventoryParts(partSearchField.getText().trim()));
     }

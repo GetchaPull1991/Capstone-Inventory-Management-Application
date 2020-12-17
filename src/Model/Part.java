@@ -1,12 +1,18 @@
 package Model;
 
-
+/** Abstract Part class */
 public abstract class Part {
 
     private int id;
     private String name;
     private double price;
 
+    /**
+     * Create new part
+     * @param id the id to set
+     * @param name the name to set
+     * @param price the price to set
+     */
     public Part (int id, String name, double price){
         this.id = id;
         this.name = name;

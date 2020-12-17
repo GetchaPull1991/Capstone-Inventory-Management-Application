@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+/** Class that handles Main Border Pane and Menu functionality */
 public class MainBorderPaneController implements Initializable {
     @FXML
     public Button customersButton;
@@ -46,8 +47,10 @@ public class MainBorderPaneController implements Initializable {
     @FXML
     public Button changePasswordButton;
 
-    Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
-    Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+
+    //Create information and confirmation alerts
+    private final Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
+    private final Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
 
     //The current User logged in to the application
     public static User currentUser;
@@ -133,6 +136,8 @@ public class MainBorderPaneController implements Initializable {
     /** Check the User's privileges */
     private void checkUserPrivileges(){
         if (!currentUser.getPrivileges().equals("ADMIN")){
+
+            //Remove the Users menu button if the current user is not an ADMIN
             sideMenuVbox.getChildren().remove(usersButton);
         }
     }

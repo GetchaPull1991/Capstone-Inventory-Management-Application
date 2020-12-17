@@ -22,23 +22,31 @@ public class ProductDatabase extends Database {
      * @return the list of Products
      */
     public static ObservableList<InventoryProduct> getAllProducts(){
-
+        updateProductStock();
+        //Connect to the database
         connect();
+
+        //Create list of products
         ObservableList<InventoryProduct> products = FXCollections.observableArrayList();
 
-
+        //Retrieve products
         try(Statement statement = connection.createStatement()){
                 ResultSet productResultSet = statement.executeQuery("SELECT * FROM products;");
-
+                //Add Products to list
                 while (productResultSet.next()){
                     products.add(new InventoryProduct(productResultSet.getInt("product_id"),
                             productResultSet.getString("name"),
-                            PartDatabase.getProductParts(productResultSet.getInt("product_id"))));
+                            PartDatabase.getProductParts(productResultSet.getInt("product_id")),
+                            productResultSet.getInt("stock")));
                 }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+
+        //Disconnect from the database
         disconnect();
+
+        //Return products list
         return products;
     }
 
@@ -48,6 +56,7 @@ public class ProductDatabase extends Database {
      * @return the list of Products
      */
     public static ObservableList<OrderProduct> getOrderProducts(int orderId){
+
         //Connect to database
         connect();
 
@@ -134,7 +143,7 @@ public class ProductDatabase extends Database {
                 //Add the product to the part products list
                 partProducts.add(new InventoryProduct(productResultSet.getInt("product_id"),
                                         productResultSet.getString("name"),
-                                        productParts));
+                                        productParts, productResultSet.getInt("stock")));
 
             }
         } catch (SQLException throwables) {
@@ -169,7 +178,7 @@ public class ProductDatabase extends Database {
             while (productResultSet.next()){
                 product = new InventoryProduct(productResultSet.getInt("product_id"),
                         productResultSet.getString("name"),
-                        PartDatabase.getProductParts(productResultSet.getInt("product_id")));
+                        PartDatabase.getProductParts(productResultSet.getInt("product_id")), productResultSet.getInt("stock"));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -227,13 +236,20 @@ public class ProductDatabase extends Database {
         updateProductStock();
     }
 
+    /** Update the product based on the lowest stock of a part divided by its quantity */
     public static void updateProductStock(){
+
         //Connect to the database
         connect();
 
+        //Create product id list
         ArrayList<Integer> productIdList = new ArrayList<>();
+
+        //Retrieve product ids
         try(Statement statement = connection.createStatement()){
             ResultSet productIdResult = statement.executeQuery("SELECT product_id FROM products;");
+
+            //Add ids to list
             while(productIdResult.next()){
                 productIdList.add(productIdResult.getInt("product_id"));
             }
@@ -241,7 +257,9 @@ public class ProductDatabase extends Database {
             throwables.printStackTrace();
         }
 
+        //For each id
         for (Integer productId : productIdList) {
+
             //Set the product stock to the value of the part stock divided by the part quantity
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("UPDATE products pro " +
@@ -254,6 +272,7 @@ public class ProductDatabase extends Database {
             }
         }
 
+        //Disconnect from the database
         disconnect();
     }
 
@@ -262,8 +281,11 @@ public class ProductDatabase extends Database {
      * @param productId the product id of the customer to remove
      */
     public static void removeProduct(int productId){
+
+        //Connect to the database
         connect();
 
+        //Delete product
         try (Statement statement = connection.createStatement()){
 
             String removeQuery = "DELETE FROM products WHERE product_id = '" + productId + "';";
@@ -273,6 +295,7 @@ public class ProductDatabase extends Database {
             throwables.printStackTrace();
         }
 
+        //Delete product part association
         try (Statement statement = connection.createStatement()){
 
             String removeQuery = "DELETE FROM product_parts WHERE product_id = '" + productId + "';";
@@ -282,10 +305,17 @@ public class ProductDatabase extends Database {
             throwables.printStackTrace();
         }
 
+        //Disconnect from the database
         disconnect();
     }
 
+    /**
+     * Update Product
+     * @param product the Product to update
+     */
     public static void updateProduct(InventoryProduct product){
+
+        //Connect to the database
         connect();
 
         //Clear associated parts from product parts table
@@ -317,11 +347,18 @@ public class ProductDatabase extends Database {
             throwables.printStackTrace();
         }
 
+        //Disconnect from database
         disconnect();
 
+        //Update Product stock
         updateProductStock();
     }
 
+    /**
+     * Search Products
+     * @param searchCriteria the search criteria to search with
+     * @return the list of Products matching the search criteria
+     */
     public static ObservableList<InventoryProduct> searchInventoryProducts(String searchCriteria){
 
         //Connect to the database
@@ -332,7 +369,7 @@ public class ProductDatabase extends Database {
 
         //Get products matching search criteria
         try(Statement statement = connection.createStatement()){
-            String searchQuery = "SELECT pro.product_id, pro.name, p.name, p.part_id FROM products pro " +
+            String searchQuery = "SELECT pp.quantity, pro.product_id, pro.name, p.name, p.part_id FROM products pro " +
                                  "JOIN product_parts pp ON pro.product_id = pp.product_id " +
                                  "JOIN parts p ON p.part_id = pp.part_id  " +
                                  "WHERE " +
@@ -344,14 +381,50 @@ public class ProductDatabase extends Database {
 
             //Add products to list
             while(productResult.next()){
+                ObservableList<ProductPart> productParts = PartDatabase.getProductParts(productResult.getInt("product_id"));
+                int stock = getProductStock(productParts);
+
                 inventoryProducts.add(new InventoryProduct(productResult.getInt("product_id"),
-                        productResult.getString("name"),
-                        PartDatabase.getProductParts(productResult.getInt("product_id"))));
+                        productResult.getString("name"), productParts, stock));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
+        //Disconnect from the database
+        disconnect();
+
+        //Return the list of products
         return inventoryProducts;
+    }
+
+    private static int getProductStock(ObservableList<ProductPart> productParts) {
+
+        //Initialize stock with first product part
+        int stock = PartDatabase.getPartById(productParts.get(0).getId()).getStock();
+
+        //For each product part
+        for (ProductPart part : productParts) {
+
+            /*
+            The part stock is determined by the stock of the Inventory Part divided
+            by the quantity of the Product Part in the product.
+            Therefore if there are 12 Inventory Parts available
+            and the Product Part requires 2 of the same part,
+            only 6 products will be available.
+            In the same sense, if the Inventory stock was 13,
+            only 6 products would be available.
+             */
+            int partStock = PartDatabase.getPartById(part.getId()).getStock() / part.getQuantity();
+
+            //If inventory stock is less than stock
+            if (stock > partStock) {
+
+                //Update stock to inventory stock
+                stock = partStock;
+            }
+        }
+
+        return stock;
     }
 }

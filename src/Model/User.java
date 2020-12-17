@@ -7,7 +7,6 @@ public class User {
 
     private Integer userId;
     private String username;
-    private String password;
     private String privileges;
     private final LocalDate createdDate;
     private final String createdBy;
@@ -16,14 +15,17 @@ public class User {
 
     /**
      * Create new User
+     * @param userId the userId to set
      * @param username the username to set
-     * @param password the password to set
      * @param privileges the privileges to set
+     * @param createdDate the created date to set
+     * @param createdBy the created by user to set
+     * @param modifiedDate the modified date to set
+     * @param modifiedBy the modified by date to set
      */
-    public User(int userId, String username, String password, String privileges, LocalDate createdDate, String createdBy, LocalDate modifiedDate, String modifiedBy){
+    public User(int userId, String username,String privileges, LocalDate createdDate, String createdBy, LocalDate modifiedDate, String modifiedBy){
         this.userId = userId;
         this.username = username;
-        this.password = password;
         this.privileges = privileges;
         this.createdDate = createdDate;
         this.createdBy = createdBy;
@@ -45,19 +47,6 @@ public class User {
         this.username = username;
     }
 
-    /**
-     * @return the password
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * @param password the password to set
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     /**
      * @return the privileges

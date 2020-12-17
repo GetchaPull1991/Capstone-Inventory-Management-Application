@@ -19,6 +19,7 @@ import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/** Class that handles Customer form GUI functionality */
 public class CustomersController implements Initializable {
 
     @FXML
@@ -66,14 +67,17 @@ public class CustomersController implements Initializable {
     @FXML
     public TextField searchField;
 
-    Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
-    Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
+    //Create confirmation and information alerts
+    private final Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+    private final Alert informationAlert = new Alert(Alert.AlertType.INFORMATION);
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellFactories();
         setButtonEventHandlers();
+
+        //Set customers table data after scene loads
         Platform.runLater(() -> {customersTable.setItems(CustomerDatabase.getAllCustomers());});
     }
 
@@ -281,6 +285,7 @@ public class CustomersController implements Initializable {
         divisionField.clear();
     }
 
+    /** Search cutomers and display results in the table view*/
     private void searchCustomers(){
         customersTable.setItems(CustomerDatabase.searchCustomers(searchField.getText().trim()));
     }

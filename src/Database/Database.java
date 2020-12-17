@@ -1,11 +1,8 @@
 package Database;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Properties;
 
 public abstract class Database {
 
@@ -14,17 +11,15 @@ public abstract class Database {
     /**Connect to the database*/
     public static void connect() {
         try {
-            Properties properties = new Properties();
-            properties.load(new FileInputStream("C:\\Users\\jsmit\\IdeaProjects\\InventoryApplicationCapstone\\src\\Resources\\config.properties"));
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/capstone_inventory_application",
-                                                    properties.getProperty("localDatabaseUser"),
-                                                    properties.getProperty("localDatabasePassword"));
-        } catch (ClassNotFoundException | SQLException | IOException e) {
+            connection = DriverManager.getConnection("jdbc:mysql://sdev-capstone-db.cocnamndjjhc.us-east-2.rds.amazonaws.com:3306/capstone_inventory_application",
+                    "admin", "adminwgu");
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
 
+    /**Disconnect from the database*/
     public static void disconnect(){
         try {
             connection.close();
