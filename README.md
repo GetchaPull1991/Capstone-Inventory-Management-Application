@@ -2,29 +2,22 @@
 
 ## Overview
 
-The Inventory Management Application is a full stack web application designed to help businesses track and manage their inventory efficiently. The application allows users to add, update, and remove items from the inventory, as well as view detailed information about each item. It is built with modern web technologies to ensure a smooth and responsive user experience.
+The Inventory Management Application is a desktop application designed to help businesses efficiently track and manage their inventory. The application allows users to add, update, and remove items from the inventory, as well as view detailed information about each item. It is built using Java and JavaFX for the user interface, with a MySQL database for storing inventory data.
 
 ## Features
 
 - **Add New Items:** Easily add new products to your inventory with detailed descriptions, quantities, and other relevant information.
-- **Update Existing Items:** Modify the details of existing items in your inventory.
+- **Update Existing Items:** Modify the details of existing items in your inventory.+
 - **Delete Items:** Remove items that are no longer needed from the inventory.
-- **View Inventory:** Get a comprehensive overview of all items in your inventory with filtering and sorting options.
+- **View Inventory:** Get a comprehensive overview of all items in your inventory with sorting options.
 - **Search Functionality:** Quickly find specific items using the search feature.
 
 ## Technologies Used
 
-- **Front End:**
-  - React.js: For building the user interface.
-  - HTML/CSS: For structuring and styling the application.
-  - Bootstrap: For responsive design and UI components.
-  
-- **Back End:**
-  - Node.js: For handling server-side logic.
-  - Express.js: For building the RESTful API that connects the front end with the database.
-  
-- **Database:**
-  - MongoDB: A NoSQL database for storing inventory data.
+- **Java:** The primary programming language used for application logic.
+- **JavaFX:** Used for building the graphical user interface (GUI) of the application.
+- **MySQL:** A relational database management system for storing inventory data.
+- **JUnit:** A testing framework used to write and run repeatable tests, ensuring the reliability of the application.
 
 ## Installation
 
